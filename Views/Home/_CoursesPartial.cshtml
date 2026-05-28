@@ -1,0 +1,120 @@
+@model DrivingSchoolWeb.Models.LandingPageViewModel
+@inject IConfiguration Configuration
+@{
+    var apiBase = Configuration["ApiSettings:BaseUrl"]?.Replace("/api", "") ?? "http://103.90.225.223:8080";
+}
+<section class="py-16 md:py-24 bg-surface" id="courses-section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 md:mb-16">
+        <div class="section-ribbon-wrapper" data-aos="zoom-in">
+            <div class="section-ribbon">
+                <span>CÁC KHÓA HỌC</span>
+            </div>
+        </div>
+        <p class="text-on-surface-variant max-w-2xl mx-auto text-center mt-4" data-aos="fade-up" data-aos-delay="100">Lựa chọn lộ trình phù hợp để bắt đầu hành trình chinh phục mọi cung đường.</p>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+        @if (Model.Courses.Any())
+        {
+            @foreach (var course in Model.Courses)
+            {
+                var imgSrc = !string.IsNullOrEmpty(course.Image) ? $"{apiBase}{course.Image}" : "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600";
+                <div class="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all group card-3d-hover relative flex flex-col" data-aos="fade-up" data-aos-delay="@(Model.Courses.ToList().IndexOf(course) * 100)">
+                    <a href="@Url.Action("CourseDetail", "Home", new { id = course.Id, slug = course.Name?.Replace(" ", "-").ToLower() })"
+                       class="block h-48 relative overflow-hidden">
+                        <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                             alt="@course.Name" src="@imgSrc" loading="lazy" />
+                        @if (course.Discount_percentage > 0)
+                        {
+                            <div class="absolute top-4 right-4 bg-red-500 text-white px-4 py-1 rounded-full text-xs font-bold uppercase">
+                                Giảm @course.Discount_percentage%
+                            </div>
+                        }
+                    </a>
+                    <div class="p-6 md:p-8 flex flex-col flex-1">
+                        <h3 class="text-2xl font-black mb-2">@course.Name</h3>
+                        <p class="text-on-surface-variant text-sm mb-6 line-clamp-2">@course.Description</p>
+                        <div class="space-y-3 mb-8">
+                            @if (course.License_type != null)
+                            {
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-on-surface-variant">Loại xe:</span>
+                                    <span class="font-bold">@course.License_type.Name</span>
+                                </div>
+                            }
+                            <div class="flex justify-between text-sm">
+                                <span class="text-on-surface-variant">Học phí:</span>
+                                @if (course.DiscountedPrice.HasValue)
+                                {
+                                    <span>
+                                        <span class="price-original">@course.Price?.ToString("N0")đ</span>
+                                        <span class="font-bold text-red-500 ml-1">@course.DiscountedPrice?.ToString("N0")đ</span>
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="font-bold text-primary">@course.Price?.ToString("N0")đ</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="mt-auto">
+                        <button class="w-full py-4 rounded-xl bg-surface-container-highest font-bold hover:bg-primary hover:text-white transition-colors btn-ripple"
+                                onclick="window.location.href='#registration-form'">
+                            Đăng ký ngay
+                        </button>
+                        <a href="@Url.Action("CourseDetail", "Home", new { id = course.Id, slug = course.Name?.Replace(" ", "-").ToLower() })"
+                           class="w-full py-3 rounded-xl border-2 border-primary text-primary font-bold text-center hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2 mt-3 link-arrow-bounce">
+                            Xem chi tiết
+                            <span class="material-symbols-outlined text-base">arrow_forward</span>
+                        </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-span-3 text-center py-12 text-on-surface-variant">
+                <span class="material-symbols-outlined text-5xl mb-4 block">school</span>
+                <p>Đang cập nhật khóa học...</p>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination for Courses -->
+    @if (Model.CoursePagination != null && Model.CoursePagination.TotalPages > 1)
+    {
+        <div class="mt-12 flex justify-center gap-2">
+            @{
+                var cp = Model.CoursePagination;
+                var cpTotal = cp.TotalPages;
+                var cpCur = cp.Page;
+                var cpPages = new List<int?>();
+                if (cpTotal <= 7) {
+                    for (int i = 1; i <= cpTotal; i++) cpPages.Add(i);
+                } else {
+                    cpPages.Add(1);
+                    if (cpCur > 3) cpPages.Add(null);
+                    for (int i = Math.Max(2, cpCur - 1); i <= Math.Min(cpTotal - 1, cpCur + 1); i++) cpPages.Add(i);
+                    if (cpCur < cpTotal - 2) cpPages.Add(null);
+                    cpPages.Add(cpTotal);
+                }
+            }
+            @foreach (var p in cpPages)
+            {
+                if (p == null)
+                {
+                    <span class="w-10 h-10 flex items-center justify-center text-on-surface-variant">...</span>
+                }
+                else if (p == cpCur)
+                {
+                    <span class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold shadow-md">@p</span>
+                }
+                else
+                {
+                    <a href="@Url.Action("Index", "Home", new { coursePage = p, newsPage = Model.NewsPagination?.Page ?? 1 })#courses-section" 
+                       class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest text-on-surface hover:bg-primary/20 transition-colors font-medium">@p</a>
+                }
+            }
+        </div>
+    }
+</section>

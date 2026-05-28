@@ -1,0 +1,92 @@
+@model DrivingSchoolWeb.Models.LandingPageViewModel
+@using DrivingSchoolWeb.Helpers
+@{
+    var apiBase = ViewBag.ApiBaseUrl ?? "http://103.90.225.223:8080";
+}
+<section class="py-16 md:py-24 bg-surface-container-low border-t border-surface-variant/20" id="news-section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 md:mb-16">
+        <div class="section-ribbon-wrapper" data-aos="zoom-in">
+            <div class="section-ribbon">
+                <span>TIN TỨC</span>
+            </div>
+        </div>
+        <p class="text-on-surface-variant max-w-2xl mx-auto text-center mt-4" data-aos="fade-up" data-aos-delay="100">Cập nhật thông tin mới nhất về lái xe và bằng lái</p>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        @if (Model.News.Any())
+        {
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                @foreach (var item in Model.News)
+                {
+                    var imgSrc = !string.IsNullOrEmpty(item.Thumbnail_image) ? $"{apiBase}{item.Thumbnail_image}" : "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600";
+                    <a href="@Url.Action("NewsDetail", "Home", new { id = item.Id, slug = item.Title.ToSlug() })" class="bg-surface-container-lowest rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group flex flex-col card-3d-hover relative" data-aos="fade-up" data-aos-delay="@(Model.News.ToList().IndexOf(item) * 100)">
+                        <div class="h-48 overflow-hidden">
+                            <img class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                 alt="@item.Title" src="@imgSrc" loading="lazy" />
+                        </div>
+                        <div class="p-6 flex flex-col flex-1">
+                            @if (item.Created_time.HasValue)
+                            {
+                                <p class="text-xs text-on-surface-variant mb-2">
+                                    <span class="material-symbols-outlined text-sm align-middle mr-1">calendar_today</span>
+                                    @item.Created_time?.ToString("dd/MM/yyyy")
+                                </p>
+                            }
+                            <h3 class="text-lg font-bold mb-2 line-clamp-2">@item.Title</h3>
+                            <p class="text-on-surface-variant text-sm line-clamp-3 mb-4 flex-1">@item.Sapo</p>
+                            <span class="inline-flex items-center gap-1 text-primary font-bold text-sm group-hover:gap-2 transition-all link-arrow-bounce">
+                                Xem chi tiết
+                                <span class="material-symbols-outlined text-base">arrow_forward</span>
+                            </span>
+                        </div>
+                    </a>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-12 text-on-surface-variant">
+                <span class="material-symbols-outlined text-5xl mb-4 block">newspaper</span>
+                <p>Đang cập nhật tin tức...</p>
+            </div>
+        }
+
+        <!-- Pagination for News -->
+        @if (Model.NewsPagination != null && Model.NewsPagination.TotalPages > 1)
+        {
+            <div class="mt-12 flex justify-center gap-2">
+                @{
+                    var np = Model.NewsPagination;
+                    var npTotal = np.TotalPages;
+                    var npCur = np.Page;
+                    var npPages = new List<int?>();
+                    if (npTotal <= 7) {
+                        for (int i = 1; i <= npTotal; i++) npPages.Add(i);
+                    } else {
+                        npPages.Add(1);
+                        if (npCur > 3) npPages.Add(null);
+                        for (int i = Math.Max(2, npCur - 1); i <= Math.Min(npTotal - 1, npCur + 1); i++) npPages.Add(i);
+                        if (npCur < npTotal - 2) npPages.Add(null);
+                        npPages.Add(npTotal);
+                    }
+                }
+                @foreach (var p in npPages)
+                {
+                    if (p == null)
+                    {
+                        <span class="w-10 h-10 flex items-center justify-center text-on-surface-variant">...</span>
+                    }
+                    else if (p == npCur)
+                    {
+                        <span class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-white font-bold shadow-md">@p</span>
+                    }
+                    else
+                    {
+                        <a href="@Url.Action("Index", "Home", new { coursePage = Model.CoursePagination?.Page ?? 1, newsPage = p })#news-section" 
+                           class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-highest text-on-surface hover:bg-primary/20 transition-colors font-medium">@p</a>
+                    }
+                }
+            </div>
+        }
+    </div>
+</section>
