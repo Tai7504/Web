@@ -1,0 +1,129 @@
+@using System.Text.Json
+@model DrivingSchoolWeb.Models.LandingPageViewModel
+@{
+    var apiBase = ViewBag.ApiBaseUrl ?? "http://103.90.225.223:8080";
+    var settings = Model.Settings ?? new Dictionary<string, string>();
+    var title = settings.ContainsKey("wcu_title") ? settings["wcu_title"] : "Vì Sao Hơn 5,000+ Học Viên Chọn Chúng Tôi?";
+    var desc = settings.ContainsKey("wcu_description") ? settings["wcu_description"] : "Với triết lý giáo dục đặt sự an toàn và kỹ năng thực tế lên hàng đầu, chúng tôi mang đến môi trường học tập chuyên nghiệp.";
+    var imgPath = settings.ContainsKey("wcu_image") ? settings["wcu_image"] : "";
+    var wcuImg = string.IsNullOrEmpty(imgPath) ? "/img/default_wcu.jpg" : $"{apiBase}{imgPath}";
+
+    var statsJson = settings.ContainsKey("wcu_stats") ? settings["wcu_stats"] : "[]";
+    List<dynamic> stats = new List<dynamic>();
+    try {
+        stats = JsonSerializer.Deserialize<List<dynamic>>(statsJson);
+    } catch { }
+
+    var featuresJson = settings.ContainsKey("wcu_features") ? settings["wcu_features"] : "[]";
+    List<dynamic> features = new List<dynamic>();
+    try {
+        features = JsonSerializer.Deserialize<List<dynamic>>(featuresJson);
+    } catch { }
+}
+
+<section class="py-16 md:py-24 bg-surface overflow-hidden relative" id="why-us">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <!-- Phần trên: Text, Stats và Ảnh -->
+        <div class="flex flex-col lg:flex-row gap-12 items-center mb-16">
+            <!-- Cột trái: Text và Stats -->
+            <div class="lg:w-5/12" data-aos="fade-right">
+                <h2 class="text-4xl md:text-5xl font-black text-on-surface mb-6 leading-tight">
+                    @Html.Raw(title.Replace("5,000+", "<span class=\"text-primary\">5,000+</span>"))
+                </h2>
+                <div class="w-16 h-1.5 bg-primary mb-6 rounded-full"></div>
+                <p class="text-lg text-on-surface-variant mb-10 leading-relaxed">
+                    @desc
+                </p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    @if (stats.Count > 0)
+                    {
+                        var statIndex = 0;
+                        foreach (var statObj in stats)
+                        {
+                            var stat = JsonSerializer.Deserialize<Dictionary<string, string>>(statObj.ToString());
+                            if (stat != null)
+                            {
+                                bool isHighlight = statIndex == 1;
+                                
+                                <div class="p-4 rounded-xl shadow-md flex flex-col items-center justify-center text-center border @(isHighlight ? "bg-primary text-white border-primary" : "bg-white text-on-surface border-gray-200")">
+                                    <span class="text-2xl lg:text-3xl font-black mb-1 @(isHighlight ? "" : "text-primary")">@stat["value"]</span>
+                                    <span class="text-xs font-bold uppercase tracking-wider @(isHighlight ? "text-blue-100" : "text-on-surface-variant")">@stat["label"]</span>
+                                </div>
+                            }
+                            
+                            statIndex++;
+                        }
+                    }
+                </div>
+            </div>
+            
+            <!-- Cột phải: Carousel ảnh -->
+            <div class="lg:w-7/12 w-full" data-aos="fade-left">
+                <div class="relative rounded-2xl overflow-hidden shadow-xl border border-gray-200 p-2 bg-white">
+                    <div class="wcu-carousel rounded-xl overflow-hidden relative" style="aspect-ratio: 16/10;">
+                        @{
+                            var carouselImages = new List<string>();
+                            // Thêm ảnh từ bảng wcu_images riêng
+                            if (Model.WcuImages != null)
+                            {
+                                foreach (var wcuItem in Model.WcuImages)
+                                {
+                                    var wcuItemImg = !string.IsNullOrEmpty(wcuItem.Image_url) ? $"{apiBase}{wcuItem.Image_url}" : "";
+                                    if (!string.IsNullOrEmpty(wcuItemImg)) { carouselImages.Add(wcuItemImg); }
+                                }
+                            }
+                            // Nếu không có ảnh nào thì dùng default
+                            if (carouselImages.Count == 0) { carouselImages.Add("/img/default_wcu.jpg"); }
+                        }
+                        @for (int i = 0; i < carouselImages.Count; i++)
+                        {
+                            <img class="wcu-slide @(i == 0 ? "active" : "")" 
+                                 src="@carouselImages[i]" 
+                                 alt="Vì sao chọn chúng tôi - @(i+1)" 
+                                 loading="lazy"
+                                 style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: @(i == 0 ? "1" : "0"); transition: opacity 0.8s ease;" />
+                        }
+                        <!-- Nút điều hướng -->
+                        @if (carouselImages.Count > 1)
+                        {
+                            <button class="wcu-prev" onclick="wcuSlide(-1)" aria-label="Trước">
+                                <span class="material-symbols-outlined">chevron_left</span>
+                            </button>
+                            <button class="wcu-next" onclick="wcuSlide(1)" aria-label="Sau">
+                                <span class="material-symbols-outlined">chevron_right</span>
+                            </button>
+                            <!-- Dots -->
+                            <div class="wcu-dots">
+                                @for (int i = 0; i < carouselImages.Count; i++)
+                                {
+                                    <span class="wcu-dot @(i == 0 ? "active" : "")" onclick="wcuGoto(@i)"></span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phần dưới: Thẻ tính năng -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" data-aos="fade-up">
+            @foreach (var featureObj in features)
+            {
+                var feature = JsonSerializer.Deserialize<Dictionary<string, string>>(featureObj.ToString());
+                @if (feature != null)
+                {
+                    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:-translate-y-2 hover:shadow-lg transition-all duration-300">
+                        <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6">
+                            <span class="material-symbols-outlined text-primary text-2xl">@feature["icon"]</span>
+                        </div>
+                        <h4 class="text-xl font-bold text-on-surface mb-3">@feature["title"]</h4>
+                        <p class="text-on-surface-variant text-sm leading-relaxed">
+                            @feature["desc"]
+                        </p>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>

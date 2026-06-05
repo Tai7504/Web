@@ -1,0 +1,269 @@
+@model DrivingSchoolWeb.Models.NewsDetailViewModel
+@using DrivingSchoolWeb.Helpers
+@inject IConfiguration Configuration
+@{
+    var news = Model.News;
+    ViewData["Title"] = (news?.Title ?? "Tin Tức") + " | Đào Tạo Lái Xe Thầy Tiến Bùi";
+    ViewData["MetaDescription"] = news?.Sapo ?? "Trung tâm đào tạo lái xe Thầy Tiến Bùi - Tin tức và kiến thức lái xe an toàn.";
+    ViewData["MetaKeywords"] = !string.IsNullOrEmpty(news?.Tags) ? news.Tags : "học lái xe ô tô, thi bằng lái xe, mẹo thi lý thuyết, tin tức giao thông";
+    
+    // NOTE: Please update the domain prefix when deploying
+    var domain = "https://daotaolaixe-thaytienbui.com";
+    var apiBase = Configuration["ApiSettings:BaseUrl"]?.Replace("/api", "") ?? "http://103.90.225.223:8080";
+    var thumbnailSrc = !string.IsNullOrEmpty(news?.Thumbnail_image) ? $"{apiBase}{news.Thumbnail_image}" : "";
+    
+    ViewData["OgImage"] = !string.IsNullOrEmpty(thumbnailSrc) ? thumbnailSrc : $"{domain}/img/favicon.jpg";
+    ViewData["CanonicalUrl"] = $"{domain}/tin-tuc/{news?.Id}/{news?.Title?.ToSlug()}";
+}
+
+<!-- Hero Banner with Featured Image -->
+@if (Model.News != null && !string.IsNullOrEmpty(thumbnailSrc))
+{
+    <div class="news-hero-banner" style="position: relative; height: 500px; width: 100%; overflow: hidden; display: flex; align-items: flex-end;">
+        <!-- Full Cover Image -->
+        <img alt="@Model.News.Title" src="@thumbnailSrc" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; z-index: 1;" />
+        
+        <!-- Gradient Overlay (Darker at bottom for text readability) -->
+        <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%); z-index: 2;"></div>
+
+        <!-- Content inside Hero -->
+        <div style="position: relative; z-index: 3; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px 40px; color: white;">
+            <!-- Breadcrumb -->
+            <ul style="list-style: none; padding: 0; margin: 0 0 24px; display: flex; align-items: center; gap: 8px; font-size: 14px; opacity: 0.9;">
+                <li>
+                    <a href="@Url.Action("Index", "Home")" style="color: white; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">home</span> Trang chủ
+                    </a>
+                </li>
+                <li>&rsaquo;</li>
+                <li>
+                    <a href="@Url.Action("Index", "Home")#news-section" style="color: white; text-decoration: none;">Tin tức</a>
+                </li>
+                <li>&rsaquo;</li>
+                <li style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    @Model.News.Title
+                </li>
+            </ul>
+
+            <!-- Category Tag -->
+            <div style="display: inline-flex; align-items: center; gap: 6px; background: #0ea5e9; color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(14,165,233,0.3);">
+                <span class="material-symbols-outlined" style="font-size: 16px;">directions_car</span>
+                Tin tức lái xe
+            </div>
+
+            <!-- Title -->
+            <h1 style="font-size: 2.5rem; font-weight: 700; line-height: 1.3; margin: 0 0 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">@Model.News.Title</h1>
+
+            <!-- Meta Info -->
+            <div style="display: flex; align-items: center; gap: 16px; font-size: 14px; color: rgba(255,255,255,0.9);">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">person</span>
+                    Ban biên tập
+                </div>
+                @if (Model.News.Created_time.HasValue)
+                {
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">schedule</span>
+                        @Model.News.Created_time?.ToString("dd/MM/yyyy 'lúc' HH:mm")
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Simple breadcrumb if no image -->
+    <div class="news-detail-breadcrumb" style="margin-top: 70px;">
+        <ul>
+            <li>
+                <a href="@Url.Action("Index", "Home")">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">home</span>
+                    <span>Trang chủ</span>
+                </a>
+            </li>
+            <li class="separator">/</li>
+            <li>
+                <a href="@Url.Action("Index", "Home")#news-section">Tin tức</a>
+            </li>
+            <li class="separator">/</li>
+            <li class="current"><span>@Model.News?.Title</span></li>
+        </ul>
+    </div>
+}
+
+<div class="nd-body">
+    <div class="nd-container">
+        <div class="nd-layout">
+            <!-- Main Content -->
+            <main class="nd-main">
+                @if (Model.News != null)
+                {
+                    <article class="nd-article">
+                        @if (string.IsNullOrEmpty(thumbnailSrc))
+                        {
+                            <!-- Category Tag -->
+                            <div class="nd-tag">
+                                <span class="material-symbols-outlined" style="font-size: 16px;">directions_car</span>
+                                Tin tức lái xe
+                            </div>
+
+                            <!-- Title -->
+                            <h1 class="nd-title">@Model.News.Title</h1>
+
+                            <!-- Meta -->
+                            <div class="nd-meta">
+                                <div class="nd-meta-left">
+                                    <div class="nd-author-avatar">
+                                        <span class="material-symbols-outlined">person</span>
+                                    </div>
+                                    <div>
+                                        <span class="nd-author-name">Ban biên tập</span>
+                                        @if (Model.News.Created_time.HasValue)
+                                        {
+                                            <span class="nd-date">@Model.News.Created_time?.ToString("dd/MM/yyyy 'lúc' HH:mm")</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div class="nd-share-btns">
+                                    <button class="nd-share-btn" title="Chia sẻ Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank')">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                    </button>
+                                    <button class="nd-share-btn" title="Sao chép liên kết" onclick="navigator.clipboard.writeText(window.location.href); this.innerHTML='<span class='material-symbols-outlined' style='font-size:18px;color:#10b981'>check</span>'; setTimeout(() => this.innerHTML='<span class='material-symbols-outlined' style='font-size:18px'>link</span>', 2000)">
+                                        <span class="material-symbols-outlined" style="font-size:18px">link</span>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <!-- Share Buttons Only (since title/meta are in hero) -->
+                            <div class="nd-meta" style="justify-content: flex-end; padding-bottom: 20px; border-bottom: none;">
+                                <div class="nd-share-btns">
+                                    <button class="nd-share-btn" title="Chia sẻ Facebook" onclick="window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank')">
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                                    </button>
+                                    <button class="nd-share-btn" title="Sao chép liên kết" onclick="navigator.clipboard.writeText(window.location.href); this.innerHTML='<span class='material-symbols-outlined' style='font-size:18px;color:#10b981'>check</span>'; setTimeout(() => this.innerHTML='<span class='material-symbols-outlined' style='font-size:18px'>link</span>', 2000)">
+                                        <span class="material-symbols-outlined" style="font-size:18px">link</span>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Sapo -->
+                        <p class="nd-sapo" style="font-size: 1.125rem; font-weight: 500; color: #4b5563; margin-bottom: 24px; line-height: 1.6;">@Model.News.Sapo</p>
+
+
+
+                        <!-- Content -->
+                        @if (!string.IsNullOrEmpty(Model.News.Content))
+                        {
+                            <div class="nd-content">
+                                @Html.Raw(Model.News.Content)
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="nd-content">
+                                <p><strong>Nội dung đang được cập nhật...</strong></p>
+                            </div>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Model.News.Tags))
+                        {
+                            <div class="nd-tags mt-8 pt-6 border-t border-gray-100 flex items-center flex-wrap gap-2">
+                                <span class="material-symbols-outlined text-gray-400 mr-1" style="font-size: 20px;">sell</span>
+                                @foreach (var tag in Model.News.Tags.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <span class="inline-block bg-gray-100 text-gray-600 text-sm px-3 py-1 rounded-full font-medium transition-colors hover:bg-primary/10 hover:text-primary cursor-pointer">
+                                        @tag.Trim()
+                                    </span>
+                                }
+                            </div>
+                        }
+
+                    </article>
+                }
+                else
+                {
+                    <div style="text-align: center; padding: 60px 0;">
+                        <span class="material-symbols-outlined" style="font-size: 64px; color: #ccc;">article</span>
+                        <p style="margin-top: 16px; color: #888;">Tin tức không tồn tại hoặc đã bị xóa.</p>
+                    </div>
+                }
+            </main>
+
+            <!-- Sidebar -->
+            <aside class="nd-sidebar">
+                @if (Model.RelatedNews.Any())
+                {
+                    <div class="nd-sidebar-card">
+                        <h3 class="nd-sidebar-title">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">trending_up</span>
+                            Bài viết liên quan
+                        </h3>
+                        <ul class="nd-related-list">
+                            @foreach (var relatedNews in Model.RelatedNews.Take(5))
+                            {
+                                var relatedImgSrc = !string.IsNullOrEmpty(relatedNews.Thumbnail_image) ? $"{apiBase}{relatedNews.Thumbnail_image}" : "";
+                                <li class="nd-related-item">
+                                    <a href="@Url.Action("NewsDetail", "Home", new { id = relatedNews.Id, slug = relatedNews.Title.ToSlug() })">
+                                        @if (!string.IsNullOrEmpty(relatedImgSrc))
+                                        {
+                                            <div class="nd-related-thumb">
+                                                <img src="@relatedImgSrc" alt="@relatedNews.Title" />
+                                            </div>
+                                        }
+                                        <div class="nd-related-info">
+                                            <span class="nd-related-title">@relatedNews.Title</span>
+                                            @if (relatedNews.Created_time.HasValue)
+                                            {
+                                                <span class="nd-related-date">
+                                                    <span class="material-symbols-outlined" style="font-size: 14px;">schedule</span>
+                                                    @relatedNews.Created_time?.ToString("dd/MM/yyyy")
+                                                </span>
+                                            }
+                                        </div>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <!-- CTA Card -->
+                <div class="nd-sidebar-cta" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #004cb6 100%);">
+                    <div class="nd-cta-icon" style="background: rgba(255,255,255,0.15);">
+                        <span class="material-symbols-outlined" style="color: #fff;">school</span>
+                    </div>
+                    <h4 style="color: #fff;">Đăng ký học lái xe ngay!</h4>
+                    <p style="color: rgba(255,255,255,0.75);">Ưu đãi đặc biệt cho học viên đăng ký online</p>
+                    <a href="@Url.Action("Index", "Home")#registration-form" class="btn-cta-flash" style="padding: 14px 28px; border-radius: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; width: 100%; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">edit_note</span>
+                        <span>ĐĂNG KÝ NGAY</span>
+                    </a>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Footer Navigation -->
+        <div class="nd-footer-nav">
+            <a class="nd-nav-back" href="@Url.Action("Index", "Home")#news-section">
+                <span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
+                <span>Quay lại Tin tức</span>
+            </a>
+            <a class="nd-nav-home" href="@Url.Action("Index", "Home")">
+                <span class="material-symbols-outlined" style="font-size: 20px;">home</span>
+                <span>Về Trang chủ</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Sticky CTA Mobile ===== -->
+<div class="sticky-cta-mobile">
+    <a href="@Url.Action("Index", "Home")#registration-form" class="sticky-cta-btn">
+        <span class="material-symbols-outlined" style="font-size: 20px;">edit_note</span>
+        ĐĂNG KÝ TƯ VẤN NGAY
+    </a>
+</div>

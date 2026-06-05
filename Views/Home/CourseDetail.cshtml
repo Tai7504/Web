@@ -1,0 +1,233 @@
+@model DrivingSchoolWeb.Models.CourseDetailViewModel
+@using DrivingSchoolWeb.Helpers
+@inject IConfiguration Configuration
+@{
+    var course = Model.Course;
+    ViewData["Title"] = (course?.Name ?? "Chi tiết khóa học") + " | Đào Tạo Lái Xe Thầy Tiến Bùi";
+    ViewData["MetaDescription"] = course?.Description ?? "Trung tâm đào tạo lái xe Thầy Tiến Bùi - Chi tiết khóa học, học phí và chương trình đào tạo.";
+    ViewData["MetaKeywords"] = $"khóa học {course?.Name}, học lái xe, đào tạo lái xe, bằng lái xe, thầy Tiến Bùi";
+    
+    var apiBase = Configuration["ApiSettings:BaseUrl"]?.Replace("/api", "") ?? "http://103.90.225.223:8080";
+    var imgSrc = !string.IsNullOrEmpty(course?.Image) ? $"{apiBase}{course.Image}" : "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1200";
+    var bannerSrc = !string.IsNullOrEmpty(course?.Banner) ? $"{apiBase}{course.Banner}" : imgSrc;
+    
+    var domain = "https://daotaolaixe-thaytienbui.com";
+    ViewData["OgImage"] = !string.IsNullOrEmpty(course?.Image) ? $"{apiBase}{course.Image}" : $"{domain}/img/favicon.jpg";
+    ViewData["CanonicalUrl"] = $"{domain}/Home/CourseDetail/{course?.Id}";
+}
+
+<!-- Hero Banner -->
+@if (Model.Course != null)
+{
+    <div style="position: relative; height: 450px; width: 100%; overflow: hidden; display: flex; align-items: flex-end;">
+        <img alt="@Model.Course.Name" src="@bannerSrc" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; z-index: 1;" />
+        <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 100%); z-index: 2;"></div>
+
+        <div style="position: relative; z-index: 3; width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 20px 40px; color: white;">
+            <!-- Breadcrumb -->
+            <ul style="list-style: none; padding: 0; margin: 0 0 24px; display: flex; align-items: center; gap: 8px; font-size: 14px; opacity: 0.9;">
+                <li>
+                    <a href="@Url.Action("Index", "Home")" style="color: white; text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                        <span class="material-symbols-outlined" style="font-size: 16px;">home</span> Trang chủ
+                    </a>
+                </li>
+                <li>&rsaquo;</li>
+                <li>
+                    <a href="@Url.Action("Index", "Home")#courses-section" style="color: white; text-decoration: none;">Khóa học</a>
+                </li>
+                <li>&rsaquo;</li>
+                <li style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    @Model.Course.Name
+                </li>
+            </ul>
+
+            <!-- Badge -->
+            @if (Model.Course.License_type != null)
+            {
+                <div style="display: inline-flex; align-items: center; gap: 6px; background: #004cb6; color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 16px; box-shadow: 0 2px 10px rgba(0,76,182,0.3);">
+                    <span class="material-symbols-outlined" style="font-size: 16px;">directions_car</span>
+                    Bằng @Model.Course.License_type.Name
+                </div>
+            }
+
+            <!-- Title -->
+            <h1 style="font-size: 2.5rem; font-weight: 700; line-height: 1.3; margin: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">@Model.Course.Name</h1>
+        </div>
+    </div>
+}
+
+<div class="nd-body">
+    <div class="nd-container">
+        <div class="nd-layout">
+            <!-- Main Content -->
+            <main class="nd-main">
+                @if (Model.Course != null)
+                {
+                    <article class="nd-article">
+                        <!-- Thông tin chính -->
+                        <div style="background: #f0f7ff; border-radius: 16px; padding: 24px; margin-bottom: 32px;">
+                            <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; color: #1e293b;">
+                                <span class="material-symbols-outlined" style="font-size: 22px; vertical-align: middle; margin-right: 8px; color: #004cb6;">info</span>
+                                Thông tin khóa học
+                            </h2>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                                @if (Model.Course.License_type != null)
+                                {
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span class="material-symbols-outlined" style="font-size: 20px; color: #004cb6;">badge</span>
+                                        <div>
+                                            <div style="font-size: 12px; color: #64748b;">Loại bằng</div>
+                                            <div style="font-weight: 600;">@Model.Course.License_type.Name</div>
+                                        </div>
+                                    </div>
+                                }
+                                <div style="display: flex; align-items: center; gap: 10px;">
+                                    <span class="material-symbols-outlined" style="font-size: 20px; color: #004cb6;">payments</span>
+                                    <div>
+                                        <div style="font-size: 12px; color: #64748b;">Học phí</div>
+                                        @if (Model.Course.DiscountedPrice.HasValue)
+                                        {
+                                            <div>
+                                                <span style="text-decoration: line-through; color: #94a3b8; font-size: 14px;">@Model.Course.Price?.ToString("N0")đ</span>
+                                                <span style="font-weight: 700; color: #ef4444; margin-left: 6px;">@Model.Course.DiscountedPrice?.ToString("N0")đ</span>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div style="font-weight: 600; color: #004cb6;">@Model.Course.Price?.ToString("N0")đ</div>
+                                        }
+                                    </div>
+                                </div>
+                                @if (Model.Course.Discount_percentage > 0)
+                                {
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <span class="material-symbols-outlined" style="font-size: 20px; color: #ef4444;">local_offer</span>
+                                        <div>
+                                            <div style="font-size: 12px; color: #64748b;">Ưu đãi</div>
+                                            <div style="font-weight: 600; color: #ef4444;">Giảm @Model.Course.Discount_percentage%</div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Mô tả chi tiết -->
+                        <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; color: #1e293b;">
+                            <span class="material-symbols-outlined" style="font-size: 22px; vertical-align: middle; margin-right: 8px; color: #004cb6;">description</span>
+                            Mô tả chi tiết
+                        </h2>
+                        
+                        @if (!string.IsNullOrEmpty(Model.Course.Content))
+                        {
+                            <!-- Sapo / Mô tả ngắn -->
+                            @if (!string.IsNullOrEmpty(Model.Course.Description))
+                            {
+                                <p style="font-size: 1.05rem; font-weight: 500; color: #4b5563; margin-bottom: 24px; line-height: 1.6;">@Model.Course.Description</p>
+                            }
+                            <div class="nd-content">
+                                @Html.Raw(Model.Course.Content)
+                            </div>
+                        }
+                        else if (!string.IsNullOrEmpty(Model.Course.Description))
+                        {
+                            <div class="nd-content">
+                                <p style="font-size: 1.05rem; line-height: 1.8; color: #374151;">@Model.Course.Description</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="nd-content">
+                                <p><strong>Nội dung đang được cập nhật...</strong></p>
+                            </div>
+                        }
+
+                    </article>
+                }
+                else
+                {
+                    <div style="text-align: center; padding: 60px 0;">
+                        <span class="material-symbols-outlined" style="font-size: 64px; color: #ccc;">school</span>
+                        <p style="margin-top: 16px; color: #888;">Khóa học không tồn tại hoặc đã bị xóa.</p>
+                    </div>
+                }
+            </main>
+
+            <!-- Sidebar -->
+            <aside class="nd-sidebar">
+                <!-- Khóa học liên quan -->
+                @if (Model.RelatedCourses.Any())
+                {
+                    <div class="nd-sidebar-card">
+                        <h3 class="nd-sidebar-title">
+                            <span class="material-symbols-outlined" style="font-size: 20px;">school</span>
+                            Khóa học khác
+                        </h3>
+                        <ul class="nd-related-list">
+                            @foreach (var related in Model.RelatedCourses)
+                            {
+                                var relatedImgSrc = !string.IsNullOrEmpty(related.Image) ? $"{apiBase}{related.Image}" : "";
+                                <li class="nd-related-item">
+                                    <a href="@Url.Action("CourseDetail", "Home", new { id = related.Id, slug = related.Name?.ToSlug() })">
+                                        @if (!string.IsNullOrEmpty(relatedImgSrc))
+                                        {
+                                            <div class="nd-related-thumb">
+                                                <img src="@relatedImgSrc" alt="@related.Name" />
+                                            </div>
+                                        }
+                                        <div class="nd-related-info">
+                                            <span class="nd-related-title">@related.Name</span>
+                                            <span class="nd-related-date">
+                                                <span class="material-symbols-outlined" style="font-size: 14px;">payments</span>
+                                                @if (related.DiscountedPrice.HasValue)
+                                                {
+                                                    @related.DiscountedPrice?.ToString("N0")<text>đ</text>
+                                                }
+                                                else
+                                                {
+                                                    @related.Price?.ToString("N0")<text>đ</text>
+                                                }
+                                            </span>
+                                        </div>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <!-- CTA Card - Đăng ký -->
+                <div class="nd-sidebar-cta" style="background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #004cb6 100%);">
+                    <div class="nd-cta-icon" style="background: rgba(255,255,255,0.15);">
+                        <span class="material-symbols-outlined" style="color: #fff;">edit_note</span>
+                    </div>
+                    <h4 style="color: #fff;">Đăng ký khóa học này!</h4>
+                    <p style="color: rgba(255,255,255,0.75);">Điền thông tin để nhận tư vấn miễn phí</p>
+                    <a href="@Url.Action("Index", "Home")#registration-form" class="btn-cta-flash" style="padding: 14px 28px; border-radius: 12px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; width: 100%; justify-content: center;">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">edit_note</span>
+                        <span>ĐĂNG KÝ NGAY</span>
+                    </a>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Footer Navigation -->
+        <div class="nd-footer-nav">
+            <a class="nd-nav-back" href="@Url.Action("Index", "Home")#courses-section">
+                <span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
+                <span>Quay lại Khóa học</span>
+            </a>
+            <a class="nd-nav-home" href="@Url.Action("Index", "Home")">
+                <span class="material-symbols-outlined" style="font-size: 20px;">home</span>
+                <span>Về Trang chủ</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Sticky CTA Mobile ===== -->
+<div class="sticky-cta-mobile">
+    <a href="@Url.Action("Index", "Home")#registration-form" class="sticky-cta-btn">
+        <span class="material-symbols-outlined" style="font-size: 20px;">edit_note</span>
+        ĐĂNG KÝ TƯ VẤN NGAY
+    </a>
+</div>

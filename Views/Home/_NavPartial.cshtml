@@ -1,0 +1,51 @@
+@model DrivingSchoolWeb.Models.LandingPageViewModel
+@{
+    var apiBase = ViewBag.ApiBaseUrl ?? "http://103.90.225.223:8080";
+    var rawLogo = Model.Settings.GetValueOrDefault("logo_url", "");
+    // Nếu DB trả path /uploads/... thì dùng API server, nếu trống thì dùng local
+    var logo = string.IsNullOrEmpty(rawLogo) || rawLogo == "/uploads/logo.png" 
+        ? "/img/logo-full-trimmed.png" 
+        : rawLogo.StartsWith("/uploads/") ? apiBase + rawLogo : rawLogo;
+}
+<nav class="sticky top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(26,28,28,0.06)] h-20 md:h-24">
+    <div class="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full gap-4">
+        <a aria-label="Trang chủ" class="inline-flex items-center justify-center flex-shrink-0" href="@Url.Action("Index", "Home")">
+            <img alt="Logo" class="h-14 md:h-20 max-h-[80px] w-auto object-contain" src="@logo" />
+        </a>
+        <div class="hidden md:flex items-center gap-10" id="desktop-nav">
+            <a class="nav-link" data-section="courses-section" href="#courses-section">Khóa học</a>
+            @if (Model.Teachers != null && Model.Teachers.Any())
+            {
+                <a class="nav-link" data-section="teachers-section" href="#teachers-section">Giảng viên</a>
+            }
+            <a class="nav-link" data-section="about" href="#about">Về chúng tôi</a>
+            <a class="nav-link" data-section="why-us" href="#why-us">Vì sao chọn chúng tôi</a>
+            <a class="nav-link" data-section="news-section" href="#news-section">Tin tức</a>
+        </div>
+        <div class="hidden sm:block">
+            <button class="btn-cta-flash px-5 sm:px-7 py-2.5 sm:py-3 rounded-full text-xs sm:text-sm md:text-base whitespace-nowrap inline-flex items-center gap-1.5"
+                    onclick="window.location.href='#registration-form'">
+                <span class="material-symbols-outlined" style="font-size:18px;font-variation-settings:'FILL' 1;">bolt</span> Đăng ký ngay
+            </button>
+        </div>
+        <button aria-controls="mobile-menu" aria-expanded="false"
+                class="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-lg border border-zinc-200 text-zinc-800"
+                id="mobile-menu-btn" type="button">
+            <span class="material-symbols-outlined text-xl">menu</span>
+        </button>
+    </div>
+    <div class="hidden md:hidden border-t border-zinc-200/80 bg-white/95 backdrop-blur" id="mobile-menu">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col gap-3">
+            <a class="nav-link-mobile" data-section="courses-section" href="#courses-section">Khóa học</a>
+            @if (Model.Teachers != null && Model.Teachers.Any())
+            {
+                <a class="nav-link-mobile" data-section="teachers-section" href="#teachers-section">Giảng viên</a>
+            }
+            <a class="nav-link-mobile" data-section="about" href="#about">Về chúng tôi</a>
+            <a class="nav-link-mobile" data-section="why-us" href="#why-us">Vì sao chọn chúng tôi</a>
+            <a class="nav-link-mobile" data-section="news-section" href="#news-section">Tin tức</a>
+            <button class="red-gradient text-white px-5 py-2.5 rounded-full font-bold w-full mt-1"
+                    onclick="window.location.href='#registration-form'" type="button">Đăng ký ngay</button>
+        </div>
+    </div>
+</nav>

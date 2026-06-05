@@ -1,0 +1,107 @@
+@model DrivingSchoolWeb.Models.LandingPageViewModel
+@{
+    var apiBaseUrl = ViewBag.ApiBaseUrl ?? "http://103.90.225.223:8080";
+    
+    // Lấy tất cả banner từ DB, sắp xếp theo thứ tự
+    var banners = Model.Banners?.OrderBy(b => b.Display_order).ToList() ?? new List<DrivingSchoolWeb.Models.BannerViewModel>();
+    
+    // Nếu chưa có banner nào trong DB, dùng ảnh mặc định
+    var defaultImages = new[] {
+        "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1920&q=80",
+        "https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=1920&q=80",
+        "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&q=80",
+        "https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1920&q=80"
+    };
+}
+
+<header class="hero-carousel-wrapper" id="heroCarousel">
+    <div class="hero-carousel-track">
+        @if (banners.Any())
+        {
+            @foreach (var b in banners)
+            {
+                var imgUrl = !string.IsNullOrEmpty(b.Image_url) && b.Image_url.StartsWith("/")
+                    ? $"{apiBaseUrl}{b.Image_url}"
+                    : b.Image_url;
+                <div class="hero-carousel-slide">
+                    <img src="@imgUrl" alt="@(b.Title ?? "Banner")" loading="eager" />
+                </div>
+            }
+        }
+        else
+        {
+            @foreach (var img in defaultImages)
+            {
+                <div class="hero-carousel-slide">
+                    <img src="@img" alt="Đào Tạo Lái Xe" loading="eager" />
+                </div>
+            }
+        }
+    </div>
+
+    <!-- Navigation dots -->
+    <div class="hero-carousel-dots" id="carouselDots"></div>
+
+    <!-- Arrow buttons -->
+    <button class="hero-carousel-arrow hero-arrow-prev" id="carouselPrev" aria-label="Ảnh trước">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="hero-carousel-arrow hero-arrow-next" id="carouselNext" aria-label="Ảnh sau">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+</header>
+
+<script>
+(function() {
+    const track = document.querySelector('.hero-carousel-track');
+    const slides = document.querySelectorAll('.hero-carousel-slide');
+    const dotsContainer = document.getElementById('carouselDots');
+    const prevBtn = document.getElementById('carouselPrev');
+    const nextBtn = document.getElementById('carouselNext');
+    
+    if (!slides.length) return;
+    
+    let current = 0;
+    let autoplayTimer;
+    const total = slides.length;
+    
+    // Create dots
+    for (let i = 0; i < total; i++) {
+        const dot = document.createElement('button');
+        dot.className = 'hero-dot' + (i === 0 ? ' active' : '');
+        dot.setAttribute('aria-label', 'Slide ' + (i + 1));
+        dot.addEventListener('click', () => goTo(i));
+        dotsContainer.appendChild(dot);
+    }
+    const dots = dotsContainer.querySelectorAll('.hero-dot');
+    
+    function goTo(index) {
+        current = ((index % total) + total) % total;
+        track.style.transform = 'translateX(-' + (current * 100) + '%)';
+        dots.forEach((d, i) => d.classList.toggle('active', i === current));
+        resetAutoplay();
+    }
+    
+    prevBtn.addEventListener('click', () => goTo(current - 1));
+    nextBtn.addEventListener('click', () => goTo(current + 1));
+    
+    function resetAutoplay() {
+        clearInterval(autoplayTimer);
+        autoplayTimer = setInterval(() => goTo(current + 1), 3000);
+    }
+    resetAutoplay();
+    
+    // Pause on hover
+    const wrapper = document.getElementById('heroCarousel');
+    wrapper.addEventListener('mouseenter', () => clearInterval(autoplayTimer));
+    wrapper.addEventListener('mouseleave', resetAutoplay);
+    
+    // Touch swipe support
+    let touchStartX = 0;
+    wrapper.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive: true});
+    wrapper.addEventListener('touchend', e => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) goTo(current + (diff > 0 ? 1 : -1));
+    }, {passive: true});
+})();
+</script>

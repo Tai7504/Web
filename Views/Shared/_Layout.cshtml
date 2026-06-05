@@ -1,0 +1,129 @@
+@using DrivingSchoolWeb.Models
+<!DOCTYPE html>
+<html class="light" lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>@(ViewData["Title"] ?? "Đào Tạo Lái Xe Thầy Tiến Bùi")</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="@(ViewData["Title"] ?? "Đào Tạo Lái Xe Thầy Tiến Bùi")" />
+    <meta name="description" content="@(ViewData["MetaDescription"] ?? "Trung tâm đào tạo lái xe Thầy Tiến Bùi - Bình Dương. Đào tạo lái xe ô tô B1, B2, C1, xe máy A1. Tỉ lệ đậu cao, học phí hợp lý.")" />
+    <meta name="keywords" content="@(ViewData["MetaKeywords"] ?? "học lái xe ô tô, đào tạo lái xe b1 b2 c1, học lái xe bình dương, thầy tiến bùi")" />
+
+    <!-- Open Graph / Facebook / Zalo -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="@(ViewData["CanonicalUrl"] ?? "https://daotaolaixe.com/")" />
+    <meta property="og:title" content="@(ViewData["Title"] ?? "Đào Tạo Lái Xe Thầy Tiến Bùi")" />
+    <meta property="og:description" content="@(ViewData["MetaDescription"] ?? "Trung tâm đào tạo lái xe Thầy Tiến Bùi - Bình Dương. Tỉ lệ đậu cao, học phí hợp lý.")" />
+    <meta property="og:image" content="@(ViewData["OgImage"] ?? "/img/favicon.jpg")" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="@(ViewData["CanonicalUrl"] ?? "https://daotaolaixe.com/")" />
+    <meta property="twitter:title" content="@(ViewData["Title"] ?? "Đào Tạo Lái Xe Thầy Tiến Bùi")" />
+    <meta property="twitter:description" content="@(ViewData["MetaDescription"] ?? "Trung tâm đào tạo lái xe Thầy Tiến Bùi - Bình Dương. Tỉ lệ đậu cao, học phí hợp lý.")" />
+    <meta property="twitter:image" content="@(ViewData["OgImage"] ?? "/img/favicon.jpg")" />
+    
+    @if (ViewData["CanonicalUrl"] != null)
+    {
+        <link rel="canonical" href="@ViewData["CanonicalUrl"]" />
+    }
+
+    <!-- SEO Schema.org Section -->
+    @await RenderSectionAsync("SEO", required: false)
+
+    <link rel="shortcut icon" href="~/img/favicon.jpg" type="image/jpeg" />
+    <link rel="icon" href="~/img/favicon.jpg" type="image/jpeg" />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#004cb6",
+                        "primary-container": "#0062e6",
+                        "primary-fixed": "#bfdbfe",
+                        "primary-fixed-dim": "#93c5fd",
+                        "on-primary": "#ffffff",
+                        "on-surface": "#1a1c1c",
+                        "on-surface-variant": "#5c403c",
+                        "surface": "#f9f9f9",
+                        "surface-container": "#eeeeee",
+                        "surface-container-low": "#f3f3f3",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-high": "#e8e8e8",
+                        "surface-container-highest": "#e2e2e2",
+                    },
+                    fontFamily: {
+                        headline: ["Be Vietnam Pro"],
+                        body: ["Be Vietnam Pro"],
+                        label: ["Be Vietnam Pro"]
+                    }
+                },
+            },
+        }
+    </script>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="bg-surface text-on-surface" style="font-family: 'Be Vietnam Pro', sans-serif;">
+    @RenderBody()
+    <!-- Floating Contact Buttons -->
+    @{
+        var contactSettings = ViewBag.ContactSettings as Dictionary<string, string>;
+        
+        // Default settings fallback nếu API không accessible
+        var defaultSettings = new Dictionary<string, string>
+        {
+            { "contact_youtube", "https://www.youtube.com/@channel" },
+            { "zalo_link", "https://zalo.me/0939360123" },
+            { "hotline", "0939 360 123 - 0962 834 148" },
+            { "facebook", "https://www.facebook.com/daotaolaixebinhduong" },
+            { "facebook_messenger_link", "https://m.me/daotaolaixebinhduong" }
+        };
+        
+        var youtubeLink = (contactSettings?.ContainsKey("contact_youtube") == true) ? contactSettings["contact_youtube"] : defaultSettings["contact_youtube"];
+        var zaloLink = (contactSettings?.ContainsKey("zalo_link") == true) ? contactSettings["zalo_link"] : defaultSettings["zalo_link"];
+        var phoneNumber = (contactSettings?.ContainsKey("hotline") == true) ? contactSettings["hotline"] : defaultSettings["hotline"];
+        var fbLink = (contactSettings?.ContainsKey("facebook") == true) ? contactSettings["facebook"] : defaultSettings["facebook"];
+        var messengerLink = (contactSettings?.ContainsKey("facebook_messenger_link") == true) ? contactSettings["facebook_messenger_link"] : defaultSettings["facebook_messenger_link"];
+    }
+    <div class="floating-contacts" id="floatingContacts">
+        <a href="@youtubeLink" target="_blank" rel="noopener" class="fc-btn fc-youtube" title="Xem kênh YouTube">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </a>
+        <a href="@zaloLink" target="_blank" rel="noopener" class="fc-btn fc-zalo" title="Chat qua Zalo">
+            <span style="font-weight:900;font-size:14px;font-family:'Be Vietnam Pro',sans-serif;">Zalo</span>
+        </a>
+        <a href="tel:@phoneNumber" class="fc-btn fc-phone" title="Gọi ngay">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+        </a>
+        <a href="#" class="fc-btn fc-messenger" id="messengerBtn" data-messenger-link="@messengerLink" title="Chat qua Messenger">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 4.974 0 11.111c0 3.498 1.744 6.614 4.469 8.654V24l4.088-2.242c1.092.3 2.246.464 3.443.464 6.627 0 12-4.975 12-11.111C24 4.974 18.627 0 12 0zm1.191 14.963l-3.055-3.26-5.963 3.26L10.732 8.2l3.131 3.259L19.752 8.2l-6.561 6.763z"/></svg>
+        </a>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-top-btn" id="scrollTopBtn" title="Lên đầu trang" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"/></svg>
+    </button>
+
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800, once: true, offset: 80, easing: 'ease-out-cubic' });
+
+        // Scroll to top button visibility
+        const scrollBtn = document.getElementById('scrollTopBtn');
+        window.addEventListener('scroll', () => {
+            scrollBtn.classList.toggle('visible', window.scrollY > 400);
+        });
+    </script>
+</body>
+</html>

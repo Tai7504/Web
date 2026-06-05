@@ -1,0 +1,87 @@
+@model DrivingSchoolWeb.Models.LandingPageViewModel
+@{
+    var address = Model.Settings.GetValueOrDefault("address", "#");
+    var phone = Model.Settings.GetValueOrDefault("hotline", "#");
+    var email = Model.Settings.GetValueOrDefault("email", "#");
+    var facebook = Model.Settings.GetValueOrDefault("facebook", "#");
+    var website = Model.Settings.GetValueOrDefault("website", "#");
+    var mapQuery = System.Net.WebUtility.UrlEncode(address);
+    var googleMapEmbed = Model.Settings.GetValueOrDefault("google_map", "#");
+}
+<footer class="w-full pt-16 md:pt-20 pb-10 bg-zinc-900 text-white" style="font-family:'Be Vietnam Pro',sans-serif">
+    <!-- Bản đồ -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+        <h4 class="font-bold text-white mb-4 uppercase text-xs tracking-widest">Bản đồ</h4>
+        <div class="rounded-2xl overflow-hidden border border-zinc-800 shadow-lg">
+            @if (!string.IsNullOrEmpty(googleMapEmbed))
+            {
+                <iframe allowfullscreen="" class="w-full h-72 md:h-80" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        src="@googleMapEmbed"
+                        title="Google Map - @address" style="border:0;"></iframe>
+            }
+            else
+            {
+                <iframe allowfullscreen="" class="w-full h-72 md:h-80" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        src="https://www.google.com/maps?q=@mapQuery&output=embed"
+                        title="Google Map - @address"></iframe>
+            }
+        </div>
+    </div>
+    <!-- Footer links -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-10">
+            <!-- Về Chúng Tôi -->
+            <div>
+                <h4 class="font-bold text-white mb-4 uppercase text-xs tracking-widest">Về Chúng Tôi</h4>
+                <ul class="space-y-3">
+                    <li><a class="text-zinc-400 hover:text-primary transition-colors text-sm" href="#about">Giới thiệu</a></li>
+                    <li><a class="text-zinc-400 hover:text-primary transition-colors text-sm" href="#teachers-section">Giáo viên</a></li>
+                </ul>
+            </div>
+            <!-- Khóa Học -->
+            <div>
+                <h4 class="font-bold text-white mb-4 uppercase text-xs tracking-widest">Khóa Đào Tạo</h4>
+                <ul class="space-y-3">
+                    @if (Model.Courses.Any())
+                    {
+                        @foreach (var course in Model.Courses)
+                        {
+                            <li><a class="text-zinc-400 hover:text-primary transition-colors text-sm" href="#courses-section">@course.Name</a></li>
+                        }
+                    }
+                    else
+                    {
+                        <li><a class="text-zinc-400 text-sm" href="#courses-section">Đang cập nhật...</a></li>
+                    }
+                </ul>
+            </div>
+            <!-- Liên Hệ -->
+            <div>
+                <h4 class="font-bold text-white mb-4 uppercase text-xs tracking-widest">Liên Hệ</h4>
+                <ul class="space-y-3">
+                    <li class="flex gap-3 items-start">
+                        <span class="material-symbols-outlined text-primary text-lg shrink-0">location_on</span>
+                        <a href="https://www.google.com/maps/search/?api=1&query=@mapQuery" target="_blank" rel="noopener noreferrer" class="text-zinc-400 hover:text-primary transition-colors text-sm">@address</a>
+                    </li>
+                    <li class="flex gap-3 items-center">
+                        <span class="material-symbols-outlined text-primary text-lg shrink-0">call</span>
+                        <a href="tel:@phone" class="text-zinc-400 hover:text-primary transition-colors text-sm">@phone</a>
+                    </li>
+                    <li class="flex gap-3 items-center">
+                        <span class="material-symbols-outlined text-primary text-lg shrink-0">mail</span>
+                        <a href="mailto:@email" class="text-zinc-400 hover:text-primary transition-colors text-sm break-all">@email</a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+    <!-- Bottom Bar -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="text-zinc-500 text-xs">
+            © 2026 All rights reserved.
+        </div>
+    </div>
+</footer>

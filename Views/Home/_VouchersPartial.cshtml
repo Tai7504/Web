@@ -1,0 +1,203 @@
+@model DrivingSchoolWeb.Models.LandingPageViewModel
+@inject IConfiguration Configuration
+@{
+    var apiBase = Configuration["ApiSettings:BaseUrl"]?.Replace("/api", "") ?? "http://103.90.225.223:8080";
+    var activeVouchers = Model.Vouchers?.Where(v => v.Status).ToList() ?? new List<DrivingSchoolWeb.Models.VoucherViewModel>();
+}
+
+@if (activeVouchers.Any())
+{
+    <section class="py-12 bg-surface-container-lowest border-b border-surface-container" id="vouchers-section">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Section Title -->
+            <div class="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+                <div data-aos="fade-right">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-100 text-red-600 text-xs font-bold uppercase tracking-wider mb-3">
+                        <span class="material-symbols-outlined text-xs">local_activity</span>
+                        Chương trình ưu đãi độc quyền
+                    </div>
+                    <h2 class="text-3xl md:text-4xl font-black text-on-surface">Mã Giảm Giá Cực <span class="text-red-500">Khủng</span></h2>
+                    <p class="text-on-surface-variant text-sm mt-1">Chọn mã ưu đãi tốt nhất áp dụng ngay khi đăng ký để được giảm học phí trực tiếp.</p>
+                </div>
+
+                <!-- Navigation Buttons -->
+                <div class="flex gap-2 self-end md:self-auto" data-aos="fade-left">
+                    <button id="voucher-prev" class="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 flex items-center justify-center text-gray-600 cursor-pointer" title="Trước">
+                        <span class="material-symbols-outlined text-xl">arrow_back</span>
+                    </button>
+                    <button id="voucher-next" class="w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-primary hover:text-white hover:border-primary transition-all duration-300 flex items-center justify-center text-gray-600 cursor-pointer" title="Sau">
+                        <span class="material-symbols-outlined text-xl">arrow_forward</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Carousel Wrapper -->
+            <div class="relative overflow-hidden -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+                <div id="voucher-carousel" class="flex gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 scrollbar-hide" style="scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;">
+                    @foreach (var voucher in activeVouchers)
+                    {
+                        <div class="flex-shrink-0 w-[290px] sm:w-[325px] snap-start" data-aos="fade-up" data-aos-delay="@(activeVouchers.IndexOf(voucher) * 100)">
+                            <!-- Ticket Card -->
+                            <div class="relative bg-white rounded-xl border border-red-100 shadow-xs hover:shadow-md transition-all duration-300 flex overflow-hidden h-[125px]">
+                                <!-- Left side (Discount spine) -->
+                                <div class="w-1/4 bg-red-600 flex flex-col items-center justify-center text-white relative">
+                                    <span class="material-symbols-outlined text-2xl text-yellow-300">local_activity</span>
+                                    <span class="text-[8px] font-black tracking-widest uppercase mt-1 rotate-90 text-white/90">GIẢM GIÁ</span>
+                                    
+                                    <!-- Ticket semicircles divider -->
+                                    <div class="absolute -right-1.5 top-0 bottom-0 w-3 flex flex-col justify-between py-1.5 z-10">
+                                        @for (int i = 0; i < 5; i++)
+                                        {
+                                            <div class="w-2.5 h-2.5 bg-white rounded-full -mr-1.5 border border-red-100"></div>
+                                        }
+                                    </div>
+                                </div>
+
+                                <!-- Right side (Content & Button) -->
+                                <div class="w-3/4 p-3.5 flex flex-col justify-between bg-white">
+                                    <div>
+                                        <div class="text-[10px] font-black text-red-600 uppercase tracking-wide">
+                                            NHẬP MÃ: <span class="font-mono text-xs bg-red-50 border border-red-100 px-1.5 py-0.5 rounded ml-0.5 text-gray-800">@voucher.Code</span>
+                                        </div>
+                                        <p class="text-[11px] font-bold text-gray-700 mt-2 line-clamp-2 leading-relaxed">
+                                            @voucher.Description (Giảm @voucher.Discount% học phí)
+                                        </p>
+                                    </div>
+
+                                    <div class="flex items-center justify-between border-t border-gray-100 pt-1.5 mt-auto">
+                                        <button onclick="copyVoucherCode(this, '@voucher.Code')" 
+                                                class="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 rounded-full text-[10px] font-black transition-all flex items-center gap-1 cursor-pointer select-none active:scale-95">
+                                            <span class="material-symbols-outlined text-[10px]">content_copy</span>
+                                            <span class="copy-text">Sao chép</span>
+                                        </button>
+
+                                        @if (!string.IsNullOrEmpty(voucher.Terms))
+                                        {
+                                            <button onclick="showVoucherTerms('@voucher.Code', '@voucher.Terms')" 
+                                                    class="text-blue-500 hover:text-blue-700 text-[10px] font-bold underline cursor-pointer select-none">
+                                                Điều kiện
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Visual Modal for Conditions -->
+    <div id="voucher-terms-modal" class="fixed inset-0 bg-gray-900 bg-opacity-30 hidden items-center justify-center z-[100] p-4 backdrop-blur-xs transition-opacity duration-300">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl relative transform transition-transform duration-300 scale-95" id="voucher-modal-content-box">
+            <div class="flex items-center gap-2 text-red-600 mb-3">
+                <span class="material-symbols-outlined text-xl">local_activity</span>
+                <h4 class="text-lg font-black text-gray-800">Điều kiện áp dụng</h4>
+            </div>
+            <div class="text-sm font-bold text-gray-900 mb-4 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg flex justify-between items-center">
+                <span>Mã giảm giá:</span>
+                <span class="font-mono text-red-600" id="terms-modal-code"></span>
+            </div>
+            <p class="text-sm text-gray-600 leading-relaxed mb-6" id="terms-modal-content"></p>
+            <button onclick="closeVoucherTerms()" class="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl text-sm transition-colors cursor-pointer active:scale-98">
+                Đóng
+            </button>
+        </div>
+    </div>
+
+    <!-- Style for hiding scrollbar -->
+    <style>
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+
+    <!-- Carousel & Copy Logic -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const carousel = document.getElementById("voucher-carousel");
+            const btnPrev = document.getElementById("voucher-prev");
+            const btnNext = document.getElementById("voucher-next");
+
+            if (carousel && btnPrev && btnNext) {
+                function checkScrollable() {
+                    const isScrollable = carousel.scrollWidth > carousel.clientWidth;
+                    if (isScrollable) {
+                        btnPrev.style.display = "flex";
+                        btnNext.style.display = "flex";
+                        btnPrev.style.opacity = carousel.scrollLeft <= 5 ? "0.4" : "1";
+                        btnNext.style.opacity = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 5 ? "0.4" : "1";
+                    } else {
+                        btnPrev.style.display = "none";
+                        btnNext.style.display = "none";
+                    }
+                }
+
+                btnPrev.addEventListener("click", () => {
+                    carousel.scrollBy({ left: -carousel.offsetWidth * 0.8, behavior: "smooth" });
+                });
+
+                btnNext.addEventListener("click", () => {
+                    carousel.scrollBy({ left: carousel.offsetWidth * 0.8, behavior: "smooth" });
+                });
+
+                carousel.addEventListener("scroll", checkScrollable);
+                checkScrollable();
+                window.addEventListener("resize", checkScrollable);
+            }
+        });
+
+        function copyVoucherCode(btn, code) {
+            navigator.clipboard.writeText(code).then(() => {
+                const icon = btn.querySelector('.material-symbols-outlined');
+                const text = btn.querySelector('.copy-text');
+                const origIcon = icon.innerText;
+                const origText = text.innerText;
+                
+                icon.innerText = "check";
+                text.innerText = "Đã chép";
+                btn.classList.add('bg-green-600', 'hover:bg-green-700');
+                btn.classList.remove('bg-red-600', 'hover:bg-red-700');
+
+                setTimeout(() => {
+                    icon.innerText = origIcon;
+                    text.innerText = origText;
+                    btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    btn.classList.add('bg-red-600', 'hover:bg-red-700');
+                }, 2000);
+            }).catch(() => {
+                alert('Mã giảm giá: ' + code);
+            });
+        }
+
+        function showVoucherTerms(code, terms) {
+            const modal = document.getElementById("voucher-terms-modal");
+            const box = document.getElementById("voucher-modal-content-box");
+            document.getElementById("terms-modal-code").innerText = code;
+            document.getElementById("terms-modal-content").innerText = terms;
+            
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            setTimeout(() => {
+                box.classList.remove("scale-95");
+                box.classList.add("scale-100");
+            }, 10);
+        }
+
+        function closeVoucherTerms() {
+            const modal = document.getElementById("voucher-terms-modal");
+            const box = document.getElementById("voucher-modal-content-box");
+            box.classList.remove("scale-100");
+            box.classList.add("scale-95");
+            setTimeout(() => {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+            }, 150);
+        }
+    </script>
+}

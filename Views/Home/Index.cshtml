@@ -1,0 +1,69 @@
+@model DrivingSchoolWeb.Models.LandingPageViewModel
+@{
+    ViewData["Title"] = "ĐÀO TẠO LÁI XE THẦY TIẾN | Bình Dương";
+    ViewData["MetaDescription"] = "Đăng ký học lái xe ô tô B1, B2, C1, xe máy A1 tại Trung tâm Thầy Tiến Bùi. Cam kết tỉ lệ đậu cao, học phí trọn gói không phát sinh, thời gian học linh hoạt, xe thực hành đời mới.";
+    ViewData["MetaKeywords"] = "học lái xe ô tô, học bằng B1, học bằng B2, học bằng C1, học lái xe Bình Dương, trung tâm đào tạo lái xe, thầy Tiến Bùi, thi bằng lái xe máy A1";
+    // NOTE: Please replace CanonicalUrl and OgImage with actual real URLs when deploying to production
+    ViewData["CanonicalUrl"] = "https://daotaolaixe-thaytienbui.com/"; 
+    ViewData["OgImage"] = "https://daotaolaixe-thaytienbui.com/img/favicon.jpg"; 
+}
+
+@section SEO {
+    <!-- JSON-LD Structured Data for Local Business -->
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "DrivingSchool",
+      "name": "Trung Tâm Đào Tạo Lái Xe Thầy Tiến Bùi",
+      "image": "https://daotaolaixe-thaytienbui.com/img/favicon.jpg",
+      "@@id": "https://daotaolaixe-thaytienbui.com/",
+      "url": "https://daotaolaixe-thaytienbui.com/",
+      "telephone": "0909123456", 
+      "address": {
+        "@@type": "PostalAddress",
+        "streetAddress": "Bình Dương",
+        "addressLocality": "Bình Dương",
+        "addressRegion": "BD",
+        "postalCode": "75000",
+        "addressCountry": "VN"
+      },
+      "geo": {
+        "@@type": "GeoCoordinates",
+        "latitude": 11.0, 
+        "longitude": 106.6
+      },
+      "priceRange": "VND"
+    }
+    </script>
+}
+
+<!-- Navigation -->
+@await Html.PartialAsync("_NavPartial", Model)
+
+<!-- Hero Section -->
+@await Html.PartialAsync("_HeroPartial", Model)
+
+
+<!-- 0. Danh sách Voucher ưu đãi -->
+@await Html.PartialAsync("_VouchersPartial", Model)
+
+<!-- 1. Danh sách khóa học -->
+@await Html.PartialAsync("_CoursesPartial", Model)
+
+<!-- 2. Quy trình học tập -->
+@await Html.PartialAsync("_ProcessPartial", Model)
+
+<!-- 2. Giảng viên -->
+@await Html.PartialAsync("_TeachersPartial", Model)
+
+<!-- 3. Về chúng tôi -->
+@await Html.PartialAsync("_AboutPartial", Model)
+
+<!-- 4. Vì sao chọn chúng tôi -->
+@await Html.PartialAsync("_WhyChooseUsPartial", Model)
+
+<!-- 5. Tin tức -->
+@await Html.PartialAsync("_NewsPartial", Model)
+
+<!-- 6. Footer -->
+@await Html.PartialAsync("_FooterPartial", Model)
