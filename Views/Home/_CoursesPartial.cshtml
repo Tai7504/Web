@@ -12,13 +12,13 @@
         </div>
         <p class="text-on-surface-variant max-w-2xl mx-auto text-center mt-4" data-aos="fade-up" data-aos-delay="100">Lựa chọn lộ trình phù hợp để bắt đầu hành trình chinh phục mọi cung đường.</p>
     </div>
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-wrap justify-center gap-6 md:gap-8">
         @if (Model.Courses.Any())
         {
             @foreach (var course in Model.Courses)
             {
                 var imgSrc = !string.IsNullOrEmpty(course.Image) ? $"{apiBase}{course.Image}" : "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600";
-                <div class="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all group card-3d-hover relative flex flex-col" data-aos="fade-up" data-aos-delay="@(Model.Courses.ToList().IndexOf(course) * 100)">
+                <div class="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all group card-3d-hover relative flex flex-col w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-24px)]" data-aos="fade-up" data-aos-delay="@(Model.Courses.ToList().IndexOf(course) * 100)">
                     <a href="@Url.Action("CourseDetail", "Home", new { id = course.Id, slug = course.Name?.Replace(" ", "-").ToLower() })"
                        class="block h-48 relative overflow-hidden">
                         <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"

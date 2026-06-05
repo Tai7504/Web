@@ -44,9 +44,12 @@
             <div>
                 <h4 class="font-bold text-white mb-4 uppercase text-xs tracking-widest">Khóa Đào Tạo</h4>
                 <ul class="space-y-3">
-                    @if (Model.Courses.Any())
+                    @{
+                        var footerCourses = (Model.CoursesForForm != null && Model.CoursesForForm.Any()) ? Model.CoursesForForm : Model.Courses;
+                    }
+                    @if (footerCourses.Any())
                     {
-                        @foreach (var course in Model.Courses)
+                        @foreach (var course in footerCourses)
                         {
                             <li><a class="text-zinc-400 hover:text-primary transition-colors text-sm" href="#courses-section">@course.Name</a></li>
                         }

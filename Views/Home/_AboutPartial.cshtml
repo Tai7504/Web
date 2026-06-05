@@ -4,8 +4,29 @@
     var apiBase = ViewBag.ApiBaseUrl ?? "http://103.90.225.223:8080";
     var settings = Model.Settings ?? new Dictionary<string, string>();
 
-    var aboutText1 = settings.GetValueOrDefault("about_text_1", "Tại trung tâm, chúng tôi không chỉ dừng lại ở việc giúp học viên thi đậu lấy bằng mà còn là hành trang kiến thức vững vàng trên mọi nẻo đường.");
-    var aboutText2 = settings.GetValueOrDefault("about_text_2", "Với đội ngũ giáo viên trên 10 năm kinh nghiệm, tận tâm, chúng tôi cam kết mang lại trải nghiệm học tập tốt nhất, an toàn và hiệu quả.");
+    // Đọc danh sách các đoạn giới thiệu từ key about_intro_texts dạng mảng JSON
+    var introTextsJson = settings.GetValueOrDefault("about_intro_texts", "[]");
+    List<string> introTexts = new List<string>();
+    try {
+        introTexts = JsonSerializer.Deserialize<List<string>>(introTextsJson);
+    } catch { }
+
+    // Tương thích ngược: Nếu chưa có about_intro_texts thì lấy từ about_text_1 và about_text_2
+    if (introTexts == null || !introTexts.Any())
+    {
+        introTexts = new List<string>();
+        var t1 = settings.GetValueOrDefault("about_text_1", "");
+        var t2 = settings.GetValueOrDefault("about_text_2", "");
+        if (!string.IsNullOrEmpty(t1)) introTexts.Add(t1);
+        if (!string.IsNullOrEmpty(t2)) introTexts.Add(t2);
+    }
+
+    // Nếu vẫn rỗng hoàn toàn, dùng nội dung mặc định ban đầu
+    if (!introTexts.Any())
+    {
+        introTexts.Add("Tại trung tâm, chúng tôi không chỉ dừng lại ở việc giúp học viên thi đậu lấy bằng mà còn là hành trang kiến thức vững vàng trên mọi nẻo đường.");
+        introTexts.Add("Với đội ngũ giáo viên trên 10 năm kinh nghiệm, tận tâm, chúng tôi cam kết mang lại trải nghiệm học tập tốt nhất, an toàn và hiệu quả.");
+    }
 
     var featuresJson = settings.GetValueOrDefault("about_features", "[]");
     List<dynamic> features = new List<dynamic>();
@@ -25,15 +46,20 @@
             <div class="toast-message toast-error"> @TempData["LeadError"]</div>
         }
 
-        <div class="flex flex-col lg:flex-row gap-12 lg:gap-16 items-start" id="registration-form">
+        <div class="flex flex-col lg:flex-row gap-12 lg:gap-16 items-center" id="registration-form">
             <!-- Cột trái: Về chúng tôi -->
             <div class="lg:w-1/2" data-aos="fade-right">
                 <h2 class="text-3xl md:text-4xl font-black text-on-surface mb-2 leading-[1.2] tracking-normal">
                     Về <span class="text-primary italic">Chúng Tôi</span>
                 </h2>
                 <div class="w-16 h-1.5 bg-primary mb-6 rounded-full"></div>
-                <p class="text-base text-on-surface-variant mb-4 leading-relaxed">@aboutText1</p>
-                <p class="text-base text-on-surface-variant mb-8 leading-relaxed">@aboutText2</p>
+                
+                @foreach (var text in introTexts)
+                {
+                    var marginClass = text == introTexts.Last() ? "mb-8" : "mb-4";
+                    <p class="text-base text-on-surface-variant @marginClass leading-relaxed">@text</p>
+                }
+                
                 <div class="space-y-4">
                     @foreach (var feature in features)
                     {

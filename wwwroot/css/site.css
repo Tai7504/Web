@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap');
+
 body {
     font-family: 'Be Vietnam Pro', sans-serif;
     background: #ffffff;
@@ -2471,3 +2473,142 @@ html {
         padding: 20px 20px;
     }
 }
+
+/* ================================================================
+   VOUCHER SECTION STYLES
+   ================================================================ */
+/* Font Family Utility */
+.font-body-md {
+    font-family: 'Inter', sans-serif;
+}
+.font-headline-md {
+    font-family: 'Montserrat', sans-serif;
+}
+.font-display-lg {
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* Custom Colors Utility (Tránh phụ thuộc Tailwind config toàn cục) */
+.bg-voucher-red { background-color: #ff4d4d; }
+.bg-voucher-yellow { background-color: #ffcc00; }
+.text-voucher-text-red { color: #e60000; }
+.text-voucher-text-gray { color: #555555; }
+.text-voucher-link-blue { color: #0066cc; }
+.bg-voucher-btn-red { background-color: #e60000; }
+
+/* Thiết kế cho cuống vé bên trái */
+.ticket-stub {
+    position: relative;
+    background-color: #ff4d4d; /* voucher-red */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px; /* w-30 */
+    flex-shrink: 0;
+    border-top-left-radius: 12px;
+    border-bottom-left-radius: 12px;
+    /* Tạo đường kẻ đứt nét phân tách ở mép phải */
+    border-right: 2px dashed rgba(255, 255, 255, 0.85);
+}
+
+/* Tạo hiệu ứng răng cưa khoét sâu ở mép ngoài cùng bên trái */
+.ticket-stub::before {
+    content: '';
+    position: absolute;
+    left: -5px; /* Đẩy sang trái để một nửa hình tròn cắt vào */
+    top: 8px;   /* Giữ khoảng cách ở trên và dưới để không mất bo góc của card */
+    bottom: 8px;
+    width: 10px;
+    /* Cắt răng cưa bằng màu trắng trùng với màu nền bọc ngoài */
+    background-image: radial-gradient(circle at 5px 50%, #ffffff 4px, transparent 4.5px);
+    background-size: 10px 14px;
+    z-index: 20;
+}
+
+/* Bo góc mềm mại cho toàn bộ card */
+.voucher-card {
+    border: 1px solid #f0f0f0;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+    min-height: 150px; /* Dùng min-height để tự co giãn khi nội dung dài, tránh tràn nút */
+    width: 100%;
+    max-width: 440px; /* Giới hạn chiều rộng tối đa để tránh trống trải khi màn hình rộng */
+    margin: 0 auto;   /* Căn giữa card */
+}
+
+/* Cấu hình xoay mặc định của chiếc vé vàng */
+.ticket-yellow-svg {
+    transform-origin: center;
+    transform: rotate(-15deg);
+    transition: transform 0.3s ease;
+}
+
+/* Định nghĩa hiệu ứng rung lắc (shake animation) khi hover */
+@keyframes ticket-shake {
+    0% { transform: rotate(-15deg) scale(1.05); }
+    15% { transform: rotate(-18deg) scale(1.05); }
+    30% { transform: rotate(-12deg) scale(1.05); }
+    45% { transform: rotate(-17deg) scale(1.05); }
+    60% { transform: rotate(-13deg) scale(1.05); }
+    75% { transform: rotate(-16deg) scale(1.05); }
+    90% { transform: rotate(-14deg) scale(1.05); }
+    100% { transform: rotate(-15deg) scale(1.05); }
+}
+
+/* Kích hoạt hiệu ứng khi hover vào card voucher */
+.voucher-card:hover .ticket-yellow-svg {
+    animation: ticket-shake 0.6s ease-in-out infinite;
+}
+
+/* Emerald Colors for Auto-Applied Badge */
+.bg-emerald-50 { background-color: #ecfdf5; }
+.text-emerald-700 { color: #047857; }
+.border-emerald-200 { border-color: #a7f3d0; }
+.text-emerald-600 { color: #059669; }
+
+/* Pulse Light Animation */
+@keyframes pulse-light {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.9); }
+}
+.animate-pulse-light {
+    animation: pulse-light 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Voucher Carousel Dots */
+.voucher-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.voucher-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    background-color: #d1d5db;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+}
+
+.voucher-dot.active {
+    width: 24px;
+    background-color: #ff4d4d;
+}
+
+.voucher-dot:hover:not(.active) {
+    background-color: #9ca3af;
+}
+
+/* Voucher Carousel Drag Effect */
+.voucher-carousel-wrapper {
+    cursor: grab;
+    user-select: none;
+}
+
+.voucher-carousel-wrapper.dragging {
+    cursor: grabbing;
+}

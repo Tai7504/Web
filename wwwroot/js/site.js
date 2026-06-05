@@ -320,3 +320,409 @@ document.addEventListener('DOMContentLoaded', function () {
         observer.observe(b);
     });
 })();
+
+/* ===== VOUCHER SECTION LOGIC ===== */
+function copyVoucherCode(code, button) {
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).then(() => {
+            showVoucherSuccessState(button);
+        }).catch(err => {
+            console.error('Lỗi khi sao chép mã (navigator.clipboard):', err);
+            fallbackCopyText(code, button);
+        });
+    } else {
+        fallbackCopyText(code, button);
+    }
+}
+
+function fallbackCopyText(code, button) {
+    let textArea = document.createElement("textarea");
+    textArea.value = code;
+    textArea.style.position = "fixed";
+    textArea.style.left = "-999999px";
+    textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showVoucherSuccessState(button);
+        } else {
+            console.error('Lỗi khi sao chép mã qua execCommand');
+        }
+    } catch (err) {
+        console.error('Lỗi khi sao chép mã', err);
+    }
+    textArea.remove();
+}
+
+function showVoucherSuccessState(button) {
+    // Hiển thị Toast
+    const toast = document.getElementById('toast-voucher');
+    if (toast) {
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+        toast.classList.add('opacity-100', 'translate-y-0');
+    }
+
+    // Thay đổi tạm thời text trên nút để tạo hiệu ứng tương tác cao
+    const textSpan = button.querySelector('.btn-text');
+    const iconSpan = button.querySelector('.material-symbols-outlined');
+    if (textSpan && iconSpan) {
+        const originalText = textSpan.innerText;
+        const originalIcon = iconSpan.innerText;
+
+        textSpan.innerText = 'Đã chép';
+        iconSpan.innerText = 'check';
+
+        button.classList.remove('bg-voucher-btn-red', 'hover:bg-red-700');
+        button.classList.add('bg-green-600', 'hover:bg-green-700');
+
+        setTimeout(() => {
+            if (toast) {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+            }
+        }, 2000);
+
+        setTimeout(() => {
+            textSpan.innerText = originalText;
+            iconSpan.innerText = originalIcon;
+            button.classList.remove('bg-green-600', 'hover:bg-green-700');
+            button.classList.add('bg-voucher-btn-red', 'hover:bg-red-700');
+        }, 2000);
+    }
+}
+
+// Logic hiển thị và đóng modal điều kiện
+function showVoucherTerms(code, terms) {
+    const modal = document.getElementById("voucher-terms-modal");
+    const box = document.getElementById("voucher-modal-content-box");
+    if (modal && box) {
+        document.getElementById("terms-modal-code").innerText = code;
+        document.getElementById("terms-modal-content").innerText = terms;
+
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        setTimeout(() => {
+            box.classList.remove("scale-95");
+            box.classList.add("scale-100");
+        }, 10);
+    }
+}
+
+// Logic đóng modal điều kiện
+function closeVoucherTerms() {
+    const modal = document.getElementById("voucher-terms-modal");
+    const box = document.getElementById("voucher-modal-content-box");
+    if (modal && box) {
+        box.classList.remove("scale-100");
+        box.classList.add("scale-95");
+        setTimeout(() => {
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }, 150);
+    }
+}
+
+// Khởi tạo Infinite Carousel cho voucher (Trượt một chiều vô hạn thực sự)
+// Khởi tạo Infinite Carousel cho voucher (Trượt một chiều vô hạn thực sự, lấp ló 2 đầu)
+document.addEventListener("DOMContentLoaded", function () {
+    const carousel = document.getElementById("voucher-carousel");
+    const dotsContainer = document.getElementById("voucher-dots");
+    if (!carousel || !dotsContainer) return;
+
+    let items = Array.from(carousel.querySelectorAll(".voucher-slide"));
+    const total = items.length;
+    if (total === 0) return;
+
+    let currentIndex = 0;
+    let autoplayInterval;
+    const autoplayDelay = 5000; // 5 giây 1 lần
+    let isTransitioning = false;
+
+    // Chiều rộng slide và gap
+    const gap = 16; // gap-4 trong tailwind là 16px
+    let slideWidth = items[0].offsetWidth;
+    let moveAmount = slideWidth + gap;
+
+    // Thiết lập ban đầu để hỗ trợ lấp ló bên trái:
+    // Đưa phần tử cuối cùng lên đầu tiên của track
+    const lastItem = items[total - 1];
+    carousel.insertBefore(lastItem, items[0]);
+    
+    // Dịch chuyển track sang trái bằng đúng 1 slide + gap để slide 1 hiển thị chính ở giữa
+    carousel.style.transition = "none";
+    carousel.style.transform = `translateX(-${moveAmount}px)`;
+
+    // Tạo các dots điều hướng dựa trên index gốc
+    for (let i = 0; i < total; i++) {
+        const dot = document.createElement("button");
+        dot.className = "voucher-dot" + (i === 0 ? " active" : "");
+        dot.setAttribute("aria-label", "Voucher " + (i + 1));
+        dot.dataset.index = i;
+        dot.addEventListener("click", function () {
+            if (isTransitioning) return;
+            goToVoucher(i);
+        });
+        dotsContainer.appendChild(dot);
+    }
+
+    const dots = dotsContainer.querySelectorAll(".voucher-dot");
+
+    function setActiveDot(index) {
+        dots.forEach((d) => {
+            d.classList.toggle("active", parseInt(d.dataset.index) === index);
+        });
+    }
+
+    // Hàm trượt sang slide tiếp theo (bên phải)
+    function slideNext() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        slideWidth = carousel.firstElementChild.offsetWidth;
+        moveAmount = slideWidth + gap;
+
+        // Bật transition và dịch chuyển track thêm sang trái (đến -moveAmount * 2)
+        carousel.style.transition = "transform 0.5s ease-out";
+        carousel.style.transform = `translateX(-${moveAmount * 2}px)`;
+
+        // Sau khi hoàn thành hiệu ứng trượt
+        setTimeout(function () {
+            carousel.style.transition = "none";
+            // Lấy phần tử đầu tiên hiện tại đưa xuống cuối cùng của track
+            const firstCurrent = carousel.firstElementChild;
+            carousel.appendChild(firstCurrent);
+            // Reset transform về lại -moveAmount ngay lập tức
+            carousel.style.transform = `translateX(-${moveAmount}px)`;
+            
+            // Cập nhật index hiện tại và dot active (slide ở vị trí index 1 là slide hiển thị chính)
+            const activeSlide = carousel.children[1];
+            if (activeSlide) {
+                currentIndex = parseInt(activeSlide.dataset.index);
+                setActiveDot(currentIndex);
+            }
+
+            isTransitioning = false;
+        }, 500);
+    }
+
+    // Hàm trượt về slide trước đó (chỉ dùng cho vuốt ngược lại)
+    function slidePrev() {
+        if (isTransitioning) return;
+        isTransitioning = true;
+
+        slideWidth = carousel.firstElementChild.offsetWidth;
+        moveAmount = slideWidth + gap;
+
+        // Dịch chuyển track sang phải về 0
+        carousel.style.transition = "transform 0.5s ease-out";
+        carousel.style.transform = "translateX(0)";
+
+        // Sau khi trượt xong
+        setTimeout(function () {
+            carousel.style.transition = "none";
+            // Lấy phần tử cuối cùng hiện tại đưa lên đầu track
+            const lastCurrent = carousel.lastElementChild;
+            carousel.insertBefore(lastCurrent, carousel.firstElementChild);
+            // Reset transform về -moveAmount
+            carousel.style.transform = `translateX(-${moveAmount}px)`;
+            
+            const activeSlide = carousel.children[1];
+            if (activeSlide) {
+                currentIndex = parseInt(activeSlide.dataset.index);
+                setActiveDot(currentIndex);
+            }
+            isTransitioning = false;
+        }, 500);
+    }
+
+    // Hàm chuyển tới một voucher cụ thể khi click vào dot
+    function goToVoucher(targetIndex) {
+        if (currentIndex === targetIndex || isTransitioning) return;
+        isTransitioning = true;
+        
+        slideWidth = carousel.firstElementChild.offsetWidth;
+        moveAmount = slideWidth + gap;
+
+        const currentItems = Array.from(carousel.children);
+        const targetSlide = currentItems.find(item => parseInt(item.dataset.index) === targetIndex);
+        if (!targetSlide) {
+            isTransitioning = false;
+            return;
+        }
+        
+        const targetPos = currentItems.indexOf(targetSlide);
+
+        // slide hiển thị chính đang ở vị trí index 1
+        if (targetPos > 1) {
+            // Cần dịch chuyển track sang trái thêm (targetPos - 1) slide
+            const distance = moveAmount * (targetPos - 1);
+            carousel.style.transition = "transform 0.5s ease-out";
+            carousel.style.transform = `translateX(-${moveAmount + distance}px)`;
+
+            setTimeout(function () {
+                carousel.style.transition = "none";
+                for (let i = 0; i < targetPos - 1; i++) {
+                    carousel.appendChild(currentItems[i]);
+                }
+                carousel.style.transform = `translateX(-${moveAmount}px)`;
+                
+                currentIndex = targetIndex;
+                setActiveDot(currentIndex);
+                isTransitioning = false;
+            }, 500);
+        } else if (targetPos === 0) {
+            // Slide đích là slide lấp ló bên trái (index 0), cần dịch chuyển sang phải về 0
+            carousel.style.transition = "transform 0.5s ease-out";
+            carousel.style.transform = "translateX(0)";
+
+            setTimeout(function () {
+                carousel.style.transition = "none";
+                const lastCurrent = carousel.lastElementChild;
+                carousel.insertBefore(lastCurrent, carousel.firstElementChild);
+                carousel.style.transform = `translateX(-${moveAmount}px)`;
+                
+                currentIndex = targetIndex;
+                setActiveDot(currentIndex);
+                isTransitioning = false;
+            }, 500);
+        } else {
+            isTransitioning = false;
+        }
+        resetAutoplay();
+    }
+
+    // Thiết lập Autoplay
+    function startAutoplay() {
+        clearInterval(autoplayInterval);
+        autoplayInterval = setInterval(slideNext, autoplayDelay);
+    }
+
+    function resetAutoplay() {
+        startAutoplay();
+    }
+
+    const wrapper = carousel.parentElement;
+
+    // Mouse Drag support (Giữ và kéo chuột để chuyển slide trên PC)
+    let isDragging = false;
+    let startX = 0;
+    let dragMoveAmount = 0;
+
+    wrapper.addEventListener("mousedown", function (e) {
+        if (isTransitioning) return;
+        if (e.button !== 0) return; // Chỉ cho phép chuột trái
+        
+        isDragging = true;
+        startX = e.clientX;
+        clearInterval(autoplayInterval);
+        
+        carousel.style.transition = "none";
+        wrapper.classList.add("dragging");
+    });
+
+    window.addEventListener("mousemove", function (e) {
+        if (!isDragging) return;
+        
+        const currentX = e.clientX;
+        dragMoveAmount = currentX - startX;
+        
+        // Dịch chuyển track theo tay kéo chuột
+        const translateValue = -moveAmount + dragMoveAmount;
+        carousel.style.transform = `translateX(${translateValue}px)`;
+    });
+
+    function endDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+        wrapper.classList.remove("dragging");
+
+        carousel.style.transition = "transform 0.5s ease-out";
+
+        if (Math.abs(dragMoveAmount) > 60) { // Ngưỡng 60px để chuyển slide
+            if (dragMoveAmount < 0) {
+                slideNext(); // Kéo sang trái -> trượt tới
+            } else {
+                slidePrev(); // Kéo sang phải -> trượt lùi
+            }
+        } else {
+            // Trượt về vị trí cân bằng cũ
+            carousel.style.transform = `translateX(-${moveAmount}px)`;
+            if (total > (window.innerWidth < 640 ? 1 : 2)) {
+                startAutoplay();
+            }
+        }
+        dragMoveAmount = 0;
+    }
+
+    window.addEventListener("mouseup", endDrag);
+
+    // Chỉ chạy autoplay nếu số lượng voucher lớn hơn số lượng hiển thị đồng thời
+    const isMobile = window.innerWidth < 640;
+    if (total > (isMobile ? 1 : 2)) {
+        startAutoplay();
+        
+        // Tạm dừng khi di chuột vào
+        wrapper.addEventListener("mouseenter", function () {
+            clearInterval(autoplayInterval);
+        });
+
+        wrapper.addEventListener("mouseleave", function () {
+            if (!isDragging) {
+                startAutoplay();
+            }
+        });
+
+        // Touch Drag support (Vuốt kéo theo tay thời gian thực trên Mobile)
+        let touchStartX = 0;
+        let touchMoveAmount = 0;
+        let isTouching = false;
+
+        wrapper.addEventListener("touchstart", function (e) {
+            if (isTransitioning) return;
+            isTouching = true;
+            clearInterval(autoplayInterval);
+            touchStartX = e.touches[0].clientX;
+            carousel.style.transition = "none";
+        }, { passive: true });
+
+        wrapper.addEventListener("touchmove", function (e) {
+            if (!isTouching) return;
+            const currentX = e.touches[0].clientX;
+            touchMoveAmount = currentX - touchStartX;
+            
+            // Dịch chuyển track theo tay vuốt
+            const translateValue = -moveAmount + touchMoveAmount;
+            carousel.style.transform = `translateX(${translateValue}px)`;
+        }, { passive: true });
+
+        wrapper.addEventListener("touchend", function (e) {
+            if (!isTouching) return;
+            isTouching = false;
+            
+            carousel.style.transition = "transform 0.5s ease-out";
+            
+            if (Math.abs(touchMoveAmount) > 60) {
+                if (touchMoveAmount < 0) {
+                    slideNext();
+                } else {
+                    slidePrev();
+                }
+            } else {
+                carousel.style.transform = `translateX(-${moveAmount}px)`;
+                startAutoplay();
+            }
+            touchMoveAmount = 0;
+        }, { passive: true });
+    }
+
+    // Cập nhật khi resize
+    window.addEventListener("resize", function () {
+        slideWidth = carousel.firstElementChild.offsetWidth;
+        moveAmount = slideWidth + gap;
+        carousel.style.transition = "none";
+        carousel.style.transform = `translateX(-${moveAmount}px)`;
+    });
+});
