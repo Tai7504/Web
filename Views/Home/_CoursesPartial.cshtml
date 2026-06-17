@@ -1,10 +1,11 @@
 @model DrivingSchoolWeb.Models.LandingPageViewModel
 @inject IConfiguration Configuration
+@using DrivingSchoolWeb.Helpers
 @{
-    var apiBase = Configuration["ApiSettings:BaseUrl"]?.Replace("/api", "") ?? "http://103.90.225.223:8080";
+    var apiBase = System.Text.RegularExpressions.Regex.Replace(Configuration["ApiSettings:BaseUrl"] ?? "", "/api$", "") is var r && r != "" ? r : "http://localhost:8080";
 }
-<section class="py-16 md:py-24 bg-surface" id="courses-section">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 md:mb-16">
+<section class="py-2 sm:py-4 bg-surface" id="courses-section">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-6 sm:mb-12 md:mb-16">
         <div class="section-ribbon-wrapper" data-aos="zoom-in">
             <div class="section-ribbon">
                 <span>CÁC KHÓA HỌC</span>
@@ -19,7 +20,7 @@
             {
                 var imgSrc = !string.IsNullOrEmpty(course.Image) ? $"{apiBase}{course.Image}" : "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=600";
                 <div class="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all group card-3d-hover relative flex flex-col w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-24px)]" data-aos="fade-up" data-aos-delay="@(Model.Courses.ToList().IndexOf(course) * 100)">
-                    <a href="@Url.Action("CourseDetail", "Home", new { id = course.Id, slug = course.Name?.Replace(" ", "-").ToLower() })"
+                    <a href="@Url.RouteUrl("course_detail", new { id = course.Id, slug = course.Name?.ToSlug() })"
                        class="block h-48 relative overflow-hidden">
                         <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                              alt="@course.Name" src="@imgSrc" loading="lazy" />
@@ -61,7 +62,7 @@
                                 onclick="window.location.href='#registration-form'">
                             Đăng ký ngay
                         </button>
-                        <a href="@Url.Action("CourseDetail", "Home", new { id = course.Id, slug = course.Name?.Replace(" ", "-").ToLower() })"
+                        <a href="@Url.RouteUrl("course_detail", new { id = course.Id, slug = course.Name?.ToSlug() })"
                            class="w-full py-3 rounded-xl border-2 border-primary text-primary font-bold text-center hover:bg-primary hover:text-white transition-colors flex items-center justify-center gap-2 mt-3 link-arrow-bounce">
                             Xem chi tiết
                             <span class="material-symbols-outlined text-base">arrow_forward</span>

@@ -10,7 +10,6 @@ namespace DrivingSchoolWeb.Controllers
     public class SitemapController : Controller
     {
         private readonly ApiService _apiService;
-        private readonly string _domain = "https://daotaolaixe-thaytienbui.com"; 
 
         public SitemapController(ApiService apiService)
         {
@@ -20,6 +19,7 @@ namespace DrivingSchoolWeb.Controllers
         [Route("sitemap.xml")]
         public async Task<IActionResult> Index()
         {
+            var domain = $"{Request.Scheme}://{Request.Host}";
             var xmlSettings = new XmlWriterSettings
             {
                 Encoding = Encoding.UTF8,
@@ -33,7 +33,7 @@ namespace DrivingSchoolWeb.Controllers
                 writer.WriteStartElement("urlset", "http://www.sitemaps.org/schemas/sitemap/0.9");
 
                 // Thêm trang chủ
-                AddUrl(writer, _domain + "/", DateTime.UtcNow, "daily", "1.0");
+                AddUrl(writer, domain + "/", DateTime.UtcNow, "daily", "1.0");
 
                 // Thêm các bài tin tức
                 try
@@ -44,9 +44,29 @@ namespace DrivingSchoolWeb.Controllers
                         foreach (var news in newsResult.Data)
                         {
                             var slug = news.Title?.ToSlug() ?? string.Empty;
-                            var url = $"{_domain}/tin-tuc/{news.Id}/{slug}";
+                            var url = $"{domain}/tin-tuc/{news.Id}/{slug}";
                             var lastMod = news.Created_time ?? DateTime.UtcNow;
                             AddUrl(writer, url, lastMod, "weekly", "0.8");
+                        }
+                    }
+                }
+                catch
+                {
+                }
+
+                // Thêm các khóa học
+                try
+                {
+                    var coursesResult = await _apiService.GetCoursesAsync(1, 1000);
+                    if (coursesResult.Data != null)
+                    {
+                        foreach (var course in coursesResult.Data)
+                        {
+                            var slug = course.Name?.ToSlug() ?? string.Empty;
+                            var url = $"{domain}/khoa-hoc/{course.Id}/{slug}";
+                            // Đặt lastMod mặc định là thời gian hiện tại vì Course DB có thể không lưu cập nhật chi tiết
+                            var lastMod = DateTime.UtcNow;
+                            AddUrl(writer, url, lastMod, "weekly", "0.9");
                         }
                     }
                 }

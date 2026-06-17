@@ -1,6 +1,6 @@
 @model DrivingSchoolWeb.Models.LandingPageViewModel
 @{
-    var apiBaseUrl = ViewBag.ApiBaseUrl ?? "http://103.90.225.223:8080";
+    var apiBaseUrl = ViewBag.ApiBaseUrl ?? "http://localhost:8080";
     
     // Lấy tất cả banner từ DB, sắp xếp theo thứ tự
     var banners = Model.Banners?.OrderBy(b => b.Display_order).ToList() ?? new List<DrivingSchoolWeb.Models.BannerViewModel>();

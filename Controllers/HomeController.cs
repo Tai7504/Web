@@ -37,7 +37,7 @@ namespace DrivingSchoolWeb.Controllers
 
             // Set API Base URL và ContactSettings cho layout
             var apiBaseUrl = _configuration["ApiSettings:BaseUrl"] ?? "http://localhost:8080/api";
-            ViewBag.ApiBaseUrl = apiBaseUrl.Replace("/api", "");
+            ViewBag.ApiBaseUrl = System.Text.RegularExpressions.Regex.Replace(apiBaseUrl, "/api$", "");
             ViewBag.ContactSettings = settings ?? new Dictionary<string, string>();
 
             var model = new LandingPageViewModel
@@ -97,7 +97,7 @@ namespace DrivingSchoolWeb.Controllers
 
             // Set API Base URL và ContactSettings cho layout
             var apiBaseUrl = _configuration["ApiSettings:BaseUrl"] ?? "http://localhost:8080/api";
-            ViewBag.ApiBaseUrl = apiBaseUrl.Replace("/api", "");
+            ViewBag.ApiBaseUrl = System.Text.RegularExpressions.Regex.Replace(apiBaseUrl, "/api$", "");
             ViewBag.ContactSettings = settings ?? new Dictionary<string, string>();
 
             var model = new NewsDetailViewModel
@@ -119,12 +119,20 @@ namespace DrivingSchoolWeb.Controllers
                 return NotFound();
             }
 
+            // Redirect 301 từ URL cũ sang URL mới chuẩn SEO
+            var path = Request.Path.Value ?? "";
+            if (path.StartsWith("/Home/CourseDetail", StringComparison.OrdinalIgnoreCase))
+            {
+                var slug = DrivingSchoolWeb.Helpers.StringExtensions.ToSlug(course.Name);
+                return RedirectToRoutePermanent("course_detail", new { id = course.Id, slug = slug });
+            }
+
             var relatedCourses = await _apiService.GetRelatedCoursesAsync(id, take: 3);
             var settings = await _apiService.GetSettingsAsync();
 
             // Set API Base URL và ContactSettings cho layout
             var apiBaseUrl = _configuration["ApiSettings:BaseUrl"] ?? "http://localhost:8080/api";
-            ViewBag.ApiBaseUrl = apiBaseUrl.Replace("/api", "");
+            ViewBag.ApiBaseUrl = System.Text.RegularExpressions.Regex.Replace(apiBaseUrl, "/api$", "");
             ViewBag.ContactSettings = settings ?? new Dictionary<string, string>();
 
             var model = new CourseDetailViewModel

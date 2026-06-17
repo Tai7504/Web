@@ -2560,6 +2560,39 @@ html {
     animation: ticket-shake 0.6s ease-in-out infinite;
 }
 
+/* Responsive: Thu nhỏ voucher card trên mobile */
+@media (max-width: 639px) {
+    .ticket-stub {
+        width: 56px;
+        border-top-left-radius: 6px;
+        border-bottom-left-radius: 6px;
+        border-right-width: 1.5px;
+    }
+    .ticket-stub::before {
+        width: 8px;
+        left: -4px;
+        background-image: radial-gradient(circle at 4px 50%, #ffffff 3px, transparent 3.5px);
+        background-size: 8px 10px;
+    }
+    .voucher-card {
+        min-height: 76px;
+        max-width: 280px;
+        border-radius: 6px;
+    }
+    .voucher-carousel-dots {
+        margin-top: 8px;
+        gap: 6px;
+    }
+    .voucher-dot {
+        width: 7px;
+        height: 7px;
+    }
+    #vouchers-section {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+}
+
 /* Emerald Colors for Auto-Applied Badge */
 .bg-emerald-50 { background-color: #ecfdf5; }
 .text-emerald-700 { color: #047857; }
@@ -2610,5 +2643,42 @@ html {
 }
 
 .voucher-carousel-wrapper.dragging {
+    cursor: grabbing;
+}
+
+/* Feature Carousel Dots & Wrapper */
+.feature-carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 24px;
+}
+
+.feature-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    background-color: #d1d5db;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    padding: 0;
+}
+
+.feature-dot.active {
+    width: 24px;
+    background-color: #004cb6;
+}
+
+.feature-dot:hover:not(.active) {
+    background-color: #9ca3af;
+}
+
+.feature-carousel-wrapper {
+    cursor: grab;
+    user-select: none;
+}
+
+.feature-carousel-wrapper.dragging {
     cursor: grabbing;
 }

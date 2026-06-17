@@ -1,13 +1,13 @@
 @model DrivingSchoolWeb.Models.LandingPageViewModel
 @inject IConfiguration Configuration
 @{
-    var apiBase = Configuration["ApiSettings:BaseUrl"]?.Replace("/api", "") ?? "http://localhost:8080";
+    var apiBase = System.Text.RegularExpressions.Regex.Replace(Configuration["ApiSettings:BaseUrl"] ?? "", "/api$", "") is var r && r != "" ? r : "http://localhost:8080";
     var activeVouchers = Model.Vouchers?.Where(v => v.Status).ToList() ?? new List<DrivingSchoolWeb.Models.VoucherViewModel>();
 }
 
 @if (activeVouchers.Any())
 {
-    <section class="py-12 bg-surface-container-lowest border-b border-surface-container" id="vouchers-section">
+    <section class="py-2 sm:py-12 bg-surface-container-lowest border-b border-surface-container" id="vouchers-section">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Carousel Container (Thêm padding trái/phải px-[10%] ở mobile và px-[8%] ở desktop để lộ góc voucher hai bên) -->
             <div class="relative overflow-hidden w-full px-[10%] sm:px-[8%] voucher-carousel-wrapper">
@@ -17,11 +17,11 @@
                     {
                         <div class="flex-shrink-0 w-full sm:w-[calc(50%-8px)] voucher-slide flex justify-center" data-index="@activeVouchers.IndexOf(voucher)" data-aos="fade-up" data-aos-delay="@(activeVouchers.IndexOf(voucher) * 100)">
                             <!-- Ticket Card kiểu mới từ voucher_demo.html -->
-                            <div class="flex voucher-card bg-white transition-all hover:shadow-lg hover:-translate-y-1 duration-300 w-full min-h-[150px] font-body-md">
+                            <div class="flex voucher-card bg-white transition-all hover:shadow-lg hover:-translate-y-1 duration-300 w-full min-h-[76px] sm:min-h-[150px] font-body-md">
                                 <!-- Left Stub (Đỏ tươi + Răng cưa trái + Đường đứt nét phải) -->
                                 <div class="ticket-stub">
                                     <!-- SVG Vé Vàng Răng Cưa Cực Xịn -->
-                                    <svg class="ticket-yellow-svg w-14 h-20 drop-shadow-md" viewBox="0 0 100 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <svg class="ticket-yellow-svg w-7 h-10 sm:w-14 sm:h-20 drop-shadow-md" viewBox="0 0 100 150" fill="none" xmlns="http://www.w3.org/2000/svg">
                                         <!-- Thân vé vàng với lỗ khuyết bán nguyệt ở đầu trên và đầu dưới -->
                                         <path d="M 10 0 L 40 0 A 10 10 0 0 1 60 0 L 90 0 A 10 10 0 0 1 100 10 L 100 140 A 10 10 0 0 1 90 150 L 60 150 A 10 10 0 0 1 40 150 L 10 150 A 10 10 0 0 1 0 140 L 0 10 A 10 10 0 0 1 10 0 Z" fill="url(#yellow-grad-@voucher.Code)"/>
                                         <!-- Nét đứt ngăn cách ở 1/3 vé -->
@@ -42,10 +42,10 @@
                                     </svg>
                                 </div>
                                 <!-- Right Content -->
-                                <div class="flex-1 p-4 flex flex-col justify-between bg-white border-y border-r border-gray-100 rounded-r-xl">
+                                <div class="flex-1 p-1.5 sm:p-4 flex flex-col justify-between bg-white border-y border-r border-gray-100 rounded-r-xl">
                                     <!-- Hàng trên: Mã Coupon nét đứt & Điều kiện -->
                                     <div class="flex items-center justify-between">
-                                        <span class="font-mono text-xs font-black px-2.5 py-1 bg-red-50 text-voucher-text-red border border-dashed border-red-300 rounded-md tracking-wider select-all">
+                                        <span class="font-mono text-[10px] sm:text-xs font-black px-1.5 sm:px-2.5 py-0.5 sm:py-1 bg-red-50 text-voucher-text-red border border-dashed border-red-300 rounded-md tracking-wider select-all">
                                             @voucher.Code
                                         </span>
                                         @if (!string.IsNullOrEmpty(voucher.Terms))
@@ -58,15 +58,15 @@
                                     </div>
                                     
                                     <!-- Hàng giữa: Mô tả ngắn gọn -->
-                                    <div class="my-2">
-                                        <p class="text-voucher-text-gray text-xs sm:text-sm leading-relaxed line-clamp-2">
+                                    <div class="my-0.5 sm:my-2">
+                                        <p class="text-voucher-text-gray text-[10px] sm:text-sm leading-relaxed line-clamp-2">
                                             @voucher.Description
                                         </p>
                                     </div>
                                     
                                     <!-- Hàng dưới: Badge Tự động áp dụng nổi bật với hiệu ứng lấp lánh -->
                                     <div class="flex items-center mt-auto">
-                                        <div class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-3 py-1.5 rounded-full text-xs font-bold shadow-xs select-none">
+                                        <div class="inline-flex items-center gap-1 sm:gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-[10px] sm:text-xs font-bold shadow-xs select-none">
                                             <span class="material-symbols-outlined text-[14px] text-emerald-600 animate-pulse-light">auto_awesome</span>
                                             <span>Tự động áp dụng</span>
                                         </div>

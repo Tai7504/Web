@@ -14,7 +14,7 @@ builder.Services.AddControllersWithViews(options =>
 var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:8080/api";
 builder.Services.AddHttpClient<ApiService>(client =>
 {
-    client.BaseAddress = new Uri(apiBaseUrl.Replace("/api", ""));
+    client.BaseAddress = new Uri(System.Text.RegularExpressions.Regex.Replace(apiBaseUrl, "/api$", ""));
     client.Timeout = TimeSpan.FromSeconds(10);
 });
 
@@ -33,6 +33,11 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
+app.MapControllerRoute(
+    name: "course_detail",
+    pattern: "khoa-hoc/{id}/{slug?}",
+    defaults: new { controller = "Home", action = "CourseDetail" });
 
 app.MapControllerRoute(
     name: "news_detail",

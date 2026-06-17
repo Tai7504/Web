@@ -1,7 +1,7 @@
 @model DrivingSchoolWeb.Models.LandingPageViewModel
 @using System.Text.Json
 @{
-    var apiBase = ViewBag.ApiBaseUrl ?? "http://103.90.225.223:8080";
+    var apiBase = ViewBag.ApiBaseUrl ?? "http://localhost:8080";
     var settings = Model.Settings ?? new Dictionary<string, string>();
 
     // Đọc danh sách các đoạn giới thiệu từ key about_intro_texts dạng mảng JSON
@@ -34,7 +34,7 @@
         features = JsonSerializer.Deserialize<List<dynamic>>(featuresJson);
     } catch { }
 }
-<section class="py-16 md:py-24 bg-white overflow-hidden" id="about">
+<section class="py-4 bg-white overflow-hidden" id="about">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Toast Messages -->
         @if (TempData["LeadSuccess"] != null)

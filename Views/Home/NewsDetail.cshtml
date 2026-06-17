@@ -3,17 +3,58 @@
 @inject IConfiguration Configuration
 @{
     var news = Model.News;
-    ViewData["Title"] = (news?.Title ?? "Tin Tức") + " | Đào Tạo Lái Xe Thầy Tiến Bùi";
-    ViewData["MetaDescription"] = news?.Sapo ?? "Trung tâm đào tạo lái xe Thầy Tiến Bùi - Tin tức và kiến thức lái xe an toàn.";
-    ViewData["MetaKeywords"] = !string.IsNullOrEmpty(news?.Tags) ? news.Tags : "học lái xe ô tô, thi bằng lái xe, mẹo thi lý thuyết, tin tức giao thông";
+    var domain = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var rawHost = Context.Request.Host.Host;
+    var isIpOrLocal = rawHost.Equals("localhost", StringComparison.OrdinalIgnoreCase) 
+                      || rawHost.Equals("127.0.0.1") 
+                      || System.Net.IPAddress.TryParse(rawHost, out _);
+    var displayDomain = isIpOrLocal ? "DaoTaoLaiXeHiepThanh.vn" : rawHost;
+        
+    var siteTitle = "Đào Tạo Lái Xe Hiệp Thanh";
+    if (!isIpOrLocal && !displayDomain.Contains("hiepthanh", StringComparison.OrdinalIgnoreCase))
+    {
+        var mainDomain = displayDomain.Split('.')[0];
+        siteTitle = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(mainDomain.Replace("-", " ").Replace("_", " "));
+    }
+
+    ViewData["Title"] = (news?.Title ?? "Tin Tức") + " | " + siteTitle;
+    ViewData["MetaDescription"] = news?.Sapo ?? $"Trung tâm {siteTitle} - Tin tức và kiến thức lái xe an toàn.";
+    ViewData["MetaKeywords"] = !string.IsNullOrEmpty(news?.Tags) ? news.Tags : $"học lái xe ô tô, thi bằng lái xe, mẹo thi lý thuyết, tin tức giao thông, {siteTitle}";
     
-    // NOTE: Please update the domain prefix when deploying
-    var domain = "https://daotaolaixe-thaytienbui.com";
-    var apiBase = Configuration["ApiSettings:BaseUrl"]?.Replace("/api", "") ?? "http://103.90.225.223:8080";
+    var apiBase = System.Text.RegularExpressions.Regex.Replace(Configuration["ApiSettings:BaseUrl"] ?? "", "/api$", "") is var r && r != "" ? r : "http://localhost:8080";
     var thumbnailSrc = !string.IsNullOrEmpty(news?.Thumbnail_image) ? $"{apiBase}{news.Thumbnail_image}" : "";
     
     ViewData["OgImage"] = !string.IsNullOrEmpty(thumbnailSrc) ? thumbnailSrc : $"{domain}/img/favicon.jpg";
     ViewData["CanonicalUrl"] = $"{domain}/tin-tuc/{news?.Id}/{news?.Title?.ToSlug()}";
+}
+
+@section SEO {
+    <!-- JSON-LD Structured Data for News Article -->
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "NewsArticle",
+      "headline": "@news?.Title",
+      "description": "@news?.Sapo",
+      "image": [
+        "@thumbnailSrc"
+      ],
+      "datePublished": "@(news?.Created_time?.ToString("yyyy-MM-ddTHH:mm:sszzz") ?? DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:sszzz"))",
+      "author": {
+        "@@type": "Organization",
+        "name": "Ban biên tập @siteTitle",
+        "url": "@(domain)/"
+      },
+      "publisher": {
+        "@@type": "Organization",
+        "name": "@siteTitle",
+        "logo": {
+          "@@type": "ImageObject",
+          "url": "@(domain)/img/favicon.jpg"
+        }
+      }
+    }
+    </script>
 }
 
 <!-- Hero Banner with Featured Image -->

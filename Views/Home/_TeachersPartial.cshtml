@@ -1,8 +1,8 @@
 @model DrivingSchoolWeb.Models.LandingPageViewModel
 @{
-    var apiBase = ViewBag.ApiBaseUrl ?? "http://103.90.225.223:8080";
+    var apiBase = ViewBag.ApiBaseUrl ?? "http://localhost:8080";
 }
-<section class="py-16 md:py-24 bg-surface-container-low" id="teachers-section">
+<section class="py-4 bg-surface-container-low" id="teachers-section">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 md:mb-16">
         <div class="section-ribbon-wrapper" data-aos="zoom-in">
             <div class="section-ribbon">
@@ -18,9 +18,11 @@
                 @foreach (var teacher in Model.Teachers)
                 {
                     var imgSrc = !string.IsNullOrEmpty(teacher.Image) ? $"{apiBase}{teacher.Image}" : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400";
-                    <div class="text-center group" data-aos="zoom-in" data-aos-delay="@(Model.Teachers.ToList().IndexOf(teacher) * 100)">
-                        <div class="w-40 h-40 mx-auto rounded-full overflow-hidden shadow-xl mb-6 border-4 border-white group-hover:border-primary transition-colors teacher-glow">
-                            <img class="w-full h-full object-cover" alt="@teacher.Name" src="@imgSrc" />
+                    <div class="w-full sm:w-[calc(50%-16px)] md:w-[calc(25%-36px)] text-center group" data-aos="zoom-in" data-aos-delay="@(Model.Teachers.ToList().IndexOf(teacher) * 100)">
+                        <div class="w-40 h-40 mx-auto rounded-full overflow-hidden shadow-xl mb-6 border-4 border-white group-hover:border-primary transition-all duration-300 teacher-glow cursor-pointer active:scale-95"
+                             onclick="openTeacherModal('@imgSrc', '@teacher.Name')"
+                             title="Click để xem ảnh đầy đủ">
+                            <img class="w-full h-full object-cover object-top" alt="@teacher.Name" src="@imgSrc" />
                         </div>
                         <h3 class="text-xl font-black mb-2">@teacher.Name</h3>
                         <p class="text-on-surface-variant text-sm leading-relaxed px-4">@teacher.Description</p>
@@ -37,3 +39,64 @@
         }
     </div>
 </section>
+
+<!-- Popup hiển thị ảnh đầy đủ giáo viên -->
+<div id="teacher-avatar-modal" class="fixed inset-0 hidden items-center justify-center z-[150] p-4 bg-black/45 backdrop-blur-xs transition-opacity duration-300">
+    <div class="relative bg-white/95 rounded-2xl max-w-sm w-full p-3 shadow-2xl transform transition-transform duration-300 scale-95 flex flex-col items-center" id="teacher-modal-box">
+        <!-- Nút đóng -->
+        <button onclick="closeTeacherModal()" class="absolute -top-12 right-0 text-white hover:text-primary transition-colors cursor-pointer bg-transparent border-0 p-2 flex items-center justify-center">
+            <span class="material-symbols-outlined text-3xl font-bold">close</span>
+        </button>
+        <!-- Khung ảnh đầy đủ -->
+        <div class="rounded-xl overflow-hidden w-full max-h-[60vh] flex justify-center bg-gray-50 border border-gray-100">
+            <img id="teacher-modal-img" class="w-full h-auto object-contain" src="" alt="Ảnh đầy đủ giáo viên" />
+        </div>
+        <!-- Tên giáo viên dưới ảnh -->
+        <h4 id="teacher-modal-name" class="text-lg font-black text-gray-900 mt-4 mb-1"></h4>
+    </div>
+</div>
+
+<script>
+    function openTeacherModal(imgSrc, teacherName) {
+        const modal = document.getElementById("teacher-avatar-modal");
+        const box = document.getElementById("teacher-modal-box");
+        const img = document.getElementById("teacher-modal-img");
+        const name = document.getElementById("teacher-modal-name");
+
+        if (modal && box && img && name) {
+            img.src = imgSrc;
+            name.innerText = teacherName;
+
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            setTimeout(() => {
+                box.classList.remove("scale-95");
+                box.classList.add("scale-100");
+            }, 10);
+        }
+    }
+
+    function closeTeacherModal() {
+        const modal = document.getElementById("teacher-avatar-modal");
+        const box = document.getElementById("teacher-modal-box");
+        if (modal && box) {
+            box.classList.remove("scale-100");
+            box.classList.add("scale-95");
+            setTimeout(() => {
+                modal.classList.add("hidden");
+                modal.classList.remove("flex");
+            }, 150);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const modal = document.getElementById("teacher-avatar-modal");
+        if (modal) {
+            modal.addEventListener("click", function(e) {
+                if (e.target === modal) {
+                    closeTeacherModal();
+                }
+            });
+        }
+    });
+</script>

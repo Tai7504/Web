@@ -82,9 +82,26 @@
         </div>
     </div>
     <!-- Bottom Bar -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div class="text-zinc-500 text-xs">
-            © 2026 All rights reserved.
-        </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-zinc-800 flex justify-center items-center">
+        @{
+            var rawHost = Context.Request.Host.Host;
+            var isIpOrLocal = rawHost.Equals("localhost", StringComparison.OrdinalIgnoreCase) 
+                              || rawHost.Equals("127.0.0.1") 
+                              || System.Net.IPAddress.TryParse(rawHost, out _);
+            var displayDomain = isIpOrLocal ? "DaoTaoLaiXeHiepThanh.vn" : rawHost;
+            
+            // Xác định siteTitle dựa trên tên miền để tự động thay đổi sau này
+            var siteTitle = "Đào Tạo Lái Xe Hiệp Thanh";
+            if (!isIpOrLocal && !displayDomain.Contains("hiepthanh", StringComparison.OrdinalIgnoreCase))
+            {
+                var mainDomain = displayDomain.Split('.')[0];
+                siteTitle = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(mainDomain.Replace("-", " ").Replace("_", " "));
+            }
+        }
+        <p class="text-zinc-500 text-xs text-center">
+            Copyright &copy; 2026 
+            <a title="@siteTitle" href="/" class="hover:text-primary transition-colors font-semibold">@displayDomain</a>
+            . All Rights Reserved
+        </p>
     </div>
 </footer>

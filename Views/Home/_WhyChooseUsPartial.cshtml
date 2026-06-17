@@ -1,7 +1,7 @@
 @using System.Text.Json
 @model DrivingSchoolWeb.Models.LandingPageViewModel
 @{
-    var apiBase = ViewBag.ApiBaseUrl ?? "http://103.90.225.223:8080";
+    var apiBase = ViewBag.ApiBaseUrl ?? "http://localhost:8080";
     var settings = Model.Settings ?? new Dictionary<string, string>();
     var title = settings.ContainsKey("wcu_title") ? settings["wcu_title"] : "Vì Sao Hơn 5,000+ Học Viên Chọn Chúng Tôi?";
     
@@ -42,7 +42,7 @@
     } catch { }
 }
 
-<section class="py-16 md:py-24 bg-surface overflow-hidden relative" id="why-us">
+<section class="py-4 bg-surface overflow-hidden relative" id="why-us">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <!-- Phần trên: Text, Stats và Ảnh -->
         <div class="flex flex-col lg:flex-row gap-12 items-center mb-16">
@@ -137,23 +137,336 @@
         }
 
         <!-- Phần dưới: Thẻ tính năng -->
-        <div class="flex flex-wrap justify-center gap-6" data-aos="fade-up">
-            @foreach (var featureObj in features)
-            {
-                var feature = JsonSerializer.Deserialize<Dictionary<string, string>>(featureObj.ToString());
-                @if (feature != null)
+        @if (features.Count > 4)
+        {
+            <!-- Carousel Container -->
+            <div class="relative overflow-hidden w-full px-[10%] sm:px-[8%] feature-carousel-wrapper">
+                <!-- Carousel Track -->
+                <div id="feature-carousel" class="flex gap-4 w-full" style="transform: translateX(0);">
+                    @foreach (var featureObj in features)
+                    {
+                        var feature = JsonSerializer.Deserialize<Dictionary<string, string>>(featureObj.ToString());
+                        @if (feature != null)
+                        {
+                            <div class="flex-shrink-0 w-full sm:w-[calc(50%-8px)] lg:w-[calc(25%-12px)] feature-slide flex justify-center" data-index="@features.IndexOf(featureObj)">
+                                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:-translate-y-2 hover:shadow-lg transition-all duration-300 w-full min-h-[220px]">
+                                    <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6">
+                                        <span class="material-symbols-outlined text-primary text-2xl">@feature["icon"]</span>
+                                    </div>
+                                    <h4 class="text-xl font-bold text-on-surface mb-3">@feature["title"]</h4>
+                                    <p class="text-on-surface-variant text-sm leading-relaxed line-clamp-3">
+                                        @feature["desc"]
+                                    </p>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+                <!-- Navigation Indicator Dots -->
+                <div class="feature-carousel-dots" id="feature-dots" data-aos="fade-up"></div>
+            </div>
+        }
+        else
+        {
+            <!-- Hiển thị tĩnh khi item < 4 -->
+            <div class="flex flex-wrap justify-center gap-6" data-aos="fade-up">
+                @foreach (var featureObj in features)
                 {
-                    <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:-translate-y-2 hover:shadow-lg transition-all duration-300 w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)]">
-                        <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6">
-                            <span class="material-symbols-outlined text-primary text-2xl">@feature["icon"]</span>
+                    var feature = JsonSerializer.Deserialize<Dictionary<string, string>>(featureObj.ToString());
+                    @if (feature != null)
+                    {
+                        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:-translate-y-2 hover:shadow-lg transition-all duration-300 w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)]">
+                            <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-6">
+                                <span class="material-symbols-outlined text-primary text-2xl">@feature["icon"]</span>
+                            </div>
+                            <h4 class="text-xl font-bold text-on-surface mb-3">@feature["title"]</h4>
+                            <p class="text-on-surface-variant text-sm leading-relaxed">
+                                @feature["desc"]
+                            </p>
                         </div>
-                        <h4 class="text-xl font-bold text-on-surface mb-3">@feature["title"]</h4>
-                        <p class="text-on-surface-variant text-sm leading-relaxed">
-                            @feature["desc"]
-                        </p>
-                    </div>
+                    }
                 }
-            }
-        </div>
+            </div>
+        }
     </div>
 </section>
+
+@if (features.Count > 4)
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const carousel = document.getElementById("feature-carousel");
+            const dotsContainer = document.getElementById("feature-dots");
+            if (!carousel || !dotsContainer) return;
+
+            let items = Array.from(carousel.querySelectorAll(".feature-slide"));
+            const total = items.length;
+            if (total === 0) return;
+
+            let currentIndex = 0;
+            let autoplayInterval;
+            const autoplayDelay = 5000;
+            let isTransitioning = false;
+
+            const gap = 16;
+            let slideWidth = items[0].offsetWidth;
+            let moveAmount = slideWidth + gap;
+
+            const lastItem = items[total - 1];
+            carousel.insertBefore(lastItem, items[0]);
+
+            carousel.style.transition = "none";
+            carousel.style.transform = `translateX(-${moveAmount}px)`;
+
+            for (let i = 0; i < total; i++) {
+                const dot = document.createElement("button");
+                dot.className = "feature-dot" + (i === 0 ? " active" : "");
+                dot.setAttribute("aria-label", "Feature " + (i + 1));
+                dot.dataset.index = i;
+                dot.addEventListener("click", function () {
+                    if (isTransitioning) return;
+                    goToFeature(i);
+                });
+                dotsContainer.appendChild(dot);
+            }
+
+            const dots = dotsContainer.querySelectorAll(".feature-dot");
+
+            function setActiveDot(index) {
+                dots.forEach((d) => {
+                    d.classList.toggle("active", parseInt(d.dataset.index) === index);
+                });
+            }
+
+            function slideNext() {
+                if (isTransitioning) return;
+                isTransitioning = true;
+
+                slideWidth = carousel.firstElementChild.offsetWidth;
+                moveAmount = slideWidth + gap;
+
+                carousel.style.transition = "transform 0.5s ease-out";
+                carousel.style.transform = `translateX(-${moveAmount * 2}px)`;
+
+                setTimeout(function () {
+                    carousel.style.transition = "none";
+                    const firstCurrent = carousel.firstElementChild;
+                    carousel.appendChild(firstCurrent);
+                    carousel.style.transform = `translateX(-${moveAmount}px)`;
+
+                    const activeSlide = carousel.children[1];
+                    if (activeSlide) {
+                        currentIndex = parseInt(activeSlide.dataset.index);
+                        setActiveDot(currentIndex);
+                    }
+
+                    isTransitioning = false;
+                }, 500);
+            }
+
+            function slidePrev() {
+                if (isTransitioning) return;
+                isTransitioning = true;
+
+                slideWidth = carousel.firstElementChild.offsetWidth;
+                moveAmount = slideWidth + gap;
+
+                carousel.style.transition = "transform 0.5s ease-out";
+                carousel.style.transform = "translateX(0)";
+
+                setTimeout(function () {
+                    carousel.style.transition = "none";
+                    const lastCurrent = carousel.lastElementChild;
+                    carousel.insertBefore(lastCurrent, carousel.firstElementChild);
+                    carousel.style.transform = `translateX(-${moveAmount}px)`;
+
+                    const activeSlide = carousel.children[1];
+                    if (activeSlide) {
+                        currentIndex = parseInt(activeSlide.dataset.index);
+                        setActiveDot(currentIndex);
+                    }
+                    isTransitioning = false;
+                }, 500);
+            }
+
+            function goToFeature(targetIndex) {
+                if (currentIndex === targetIndex || isTransitioning) return;
+                isTransitioning = true;
+
+                slideWidth = carousel.firstElementChild.offsetWidth;
+                moveAmount = slideWidth + gap;
+
+                const currentItems = Array.from(carousel.children);
+                const targetSlide = currentItems.find(item => parseInt(item.dataset.index) === targetIndex);
+                if (!targetSlide) {
+                    isTransitioning = false;
+                    return;
+                }
+
+                const targetPos = currentItems.indexOf(targetSlide);
+
+                if (targetPos > 1) {
+                    const distance = moveAmount * (targetPos - 1);
+                    carousel.style.transition = "transform 0.5s ease-out";
+                    carousel.style.transform = `translateX(-${moveAmount + distance}px)`;
+
+                    setTimeout(function () {
+                        carousel.style.transition = "none";
+                        for (let i = 0; i < targetPos - 1; i++) {
+                            carousel.appendChild(currentItems[i]);
+                        }
+                        carousel.style.transform = `translateX(-${moveAmount}px)`;
+
+                        currentIndex = targetIndex;
+                        setActiveDot(currentIndex);
+                        isTransitioning = false;
+                    }, 500);
+                } else if (targetPos === 0) {
+                    carousel.style.transition = "transform 0.5s ease-out";
+                    carousel.style.transform = "translateX(0)";
+
+                    setTimeout(function () {
+                        carousel.style.transition = "none";
+                        const lastCurrent = carousel.lastElementChild;
+                        carousel.insertBefore(lastCurrent, carousel.firstElementChild);
+                        carousel.style.transform = `translateX(-${moveAmount}px)`;
+
+                        currentIndex = targetIndex;
+                        setActiveDot(currentIndex);
+                        isTransitioning = false;
+                    }, 500);
+                } else {
+                    isTransitioning = false;
+                }
+                resetAutoplay();
+            }
+
+            function startAutoplay() {
+                clearInterval(autoplayInterval);
+                autoplayInterval = setInterval(slideNext, autoplayDelay);
+            }
+
+            function resetAutoplay() {
+                startAutoplay();
+            }
+
+            const wrapper = carousel.parentElement;
+
+            let isDragging = false;
+            let startX = 0;
+            let dragMoveAmount = 0;
+
+            wrapper.addEventListener("mousedown", function (e) {
+                if (isTransitioning) return;
+                if (e.button !== 0) return;
+
+                isDragging = true;
+                startX = e.clientX;
+                clearInterval(autoplayInterval);
+
+                carousel.style.transition = "none";
+                wrapper.classList.add("dragging");
+            });
+
+            window.addEventListener("mousemove", function (e) {
+                if (!isDragging) return;
+
+                const currentX = e.clientX;
+                dragMoveAmount = currentX - startX;
+
+                const translateValue = -moveAmount + dragMoveAmount;
+                carousel.style.transform = `translateX(${translateValue}px)`;
+            });
+
+            function endDrag() {
+                if (!isDragging) return;
+                isDragging = false;
+                wrapper.classList.remove("dragging");
+
+                carousel.style.transition = "transform 0.5s ease-out";
+
+                if (Math.abs(dragMoveAmount) > 60) {
+                    if (dragMoveAmount < 0) {
+                        slideNext();
+                    } else {
+                        slidePrev();
+                    }
+                } else {
+                    carousel.style.transform = `translateX(-${moveAmount}px)`;
+                    if (total > (window.innerWidth < 640 ? 1 : (window.innerWidth < 1024 ? 2 : 4))) {
+                        startAutoplay();
+                    }
+                }
+                dragMoveAmount = 0;
+            }
+
+            window.addEventListener("mouseup", endDrag);
+
+            const isMobile = window.innerWidth < 640;
+            const isTablet = window.innerWidth < 1024;
+            const visibleCount = isMobile ? 1 : (isTablet ? 2 : 4);
+
+            if (total > visibleCount) {
+                startAutoplay();
+
+                wrapper.addEventListener("mouseenter", function () {
+                    clearInterval(autoplayInterval);
+                });
+
+                wrapper.addEventListener("mouseleave", function () {
+                    if (!isDragging) {
+                        startAutoplay();
+                    }
+                });
+
+                // Touch Drag support
+                let touchStartX = 0;
+                let touchMoveAmount = 0;
+                let isTouching = false;
+
+                wrapper.addEventListener("touchstart", function (e) {
+                    if (isTransitioning) return;
+                    isTouching = true;
+                    clearInterval(autoplayInterval);
+                    touchStartX = e.touches[0].clientX;
+                    carousel.style.transition = "none";
+                }, { passive: true });
+
+                wrapper.addEventListener("touchmove", function (e) {
+                    if (!isTouching) return;
+                    const currentX = e.touches[0].clientX;
+                    touchMoveAmount = currentX - touchStartX;
+
+                    const translateValue = -moveAmount + touchMoveAmount;
+                    carousel.style.transform = `translateX(${translateValue}px)`;
+                }, { passive: true });
+
+                wrapper.addEventListener("touchend", function (e) {
+                    if (!isTouching) return;
+                    isTouching = false;
+
+                    carousel.style.transition = "transform 0.5s ease-out";
+
+                    if (Math.abs(touchMoveAmount) > 60) {
+                        if (touchMoveAmount < 0) {
+                            slideNext();
+                        } else {
+                            slidePrev();
+                        }
+                    } else {
+                        carousel.style.transform = `translateX(-${moveAmount}px)`;
+                        startAutoplay();
+                    }
+                    touchMoveAmount = 0;
+                }, { passive: true });
+            }
+
+            window.addEventListener("resize", function () {
+                slideWidth = carousel.firstElementChild.offsetWidth;
+                moveAmount = slideWidth + gap;
+                carousel.style.transition = "none";
+                carousel.style.transform = `translateX(-${moveAmount}px)`;
+            });
+        });
+    </script>
+}

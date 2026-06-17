@@ -3,17 +3,53 @@
 @inject IConfiguration Configuration
 @{
     var course = Model.Course;
-    ViewData["Title"] = (course?.Name ?? "Chi tiết khóa học") + " | Đào Tạo Lái Xe Thầy Tiến Bùi";
-    ViewData["MetaDescription"] = course?.Description ?? "Trung tâm đào tạo lái xe Thầy Tiến Bùi - Chi tiết khóa học, học phí và chương trình đào tạo.";
-    ViewData["MetaKeywords"] = $"khóa học {course?.Name}, học lái xe, đào tạo lái xe, bằng lái xe, thầy Tiến Bùi";
+    var domain = $"{Context.Request.Scheme}://{Context.Request.Host}";
+    var rawHost = Context.Request.Host.Host;
+    var isIpOrLocal = rawHost.Equals("localhost", StringComparison.OrdinalIgnoreCase) 
+                      || rawHost.Equals("127.0.0.1") 
+                      || System.Net.IPAddress.TryParse(rawHost, out _);
+    var displayDomain = isIpOrLocal ? "DaoTaoLaiXeHiepThanh.vn" : rawHost;
+        
+    var siteTitle = "Đào Tạo Lái Xe Hiệp Thanh";
+    if (!isIpOrLocal && !displayDomain.Contains("hiepthanh", StringComparison.OrdinalIgnoreCase))
+    {
+        var mainDomain = displayDomain.Split('.')[0];
+        siteTitle = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(mainDomain.Replace("-", " ").Replace("_", " "));
+    }
+
+    ViewData["Title"] = (course?.Name ?? "Chi tiết khóa học") + " | " + siteTitle;
+    ViewData["MetaDescription"] = course?.Description ?? $"Trung tâm {siteTitle} - Chi tiết khóa học {course?.Name}, học phí và chương trình đào tạo.";
+    ViewData["MetaKeywords"] = $"khóa học {course?.Name}, học lái xe, đào tạo lái xe, bằng lái xe, {siteTitle}";
     
-    var apiBase = Configuration["ApiSettings:BaseUrl"]?.Replace("/api", "") ?? "http://103.90.225.223:8080";
+    var apiBase = System.Text.RegularExpressions.Regex.Replace(Configuration["ApiSettings:BaseUrl"] ?? "", "/api$", "") is var r && r != "" ? r : "http://localhost:8080";
     var imgSrc = !string.IsNullOrEmpty(course?.Image) ? $"{apiBase}{course.Image}" : "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1200";
     var bannerSrc = !string.IsNullOrEmpty(course?.Banner) ? $"{apiBase}{course.Banner}" : imgSrc;
     
-    var domain = "https://daotaolaixe-thaytienbui.com";
     ViewData["OgImage"] = !string.IsNullOrEmpty(course?.Image) ? $"{apiBase}{course.Image}" : $"{domain}/img/favicon.jpg";
-    ViewData["CanonicalUrl"] = $"{domain}/Home/CourseDetail/{course?.Id}";
+    ViewData["CanonicalUrl"] = $"{domain}/khoa-hoc/{course?.Id}/{course?.Name?.ToSlug()}";
+}
+
+@section SEO {
+    <!-- JSON-LD Structured Data for Course -->
+    <script type="application/ld+json">
+    {
+      "@@context": "https://schema.org",
+      "@@type": "Course",
+      "name": "@course?.Name",
+      "description": "@course?.Description",
+      "provider": {
+        "@@type": "Organization",
+        "name": "@siteTitle",
+        "sameAs": "@(domain)/"
+      },
+      "image": "@imgSrc",
+      "offers": {
+        "@@type": "Offer",
+        "price": "@(course?.DiscountedPrice ?? course?.Price ?? 0)",
+        "priceCurrency": "VND"
+      }
+    }
+    </script>
 }
 
 <!-- Hero Banner -->

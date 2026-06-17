@@ -1,17 +1,33 @@
 @model DrivingSchoolWeb.Models.LandingPageViewModel
 @{
-    var apiBase = ViewBag.ApiBaseUrl ?? "http://103.90.225.223:8080";
+    var apiBase = ViewBag.ApiBaseUrl ?? "http://localhost:8080";
     var rawLogo = Model.Settings.GetValueOrDefault("logo_url", "");
     // Nếu DB trả path /uploads/... thì dùng API server, nếu trống thì dùng local
     var logo = string.IsNullOrEmpty(rawLogo) || rawLogo == "/uploads/logo.png" 
         ? "/img/logo-full-trimmed.png" 
         : rawLogo.StartsWith("/uploads/") ? apiBase + rawLogo : rawLogo;
+
+    // Xác định siteTitle động cho h1 chuẩn SEO dựa theo tên miền
+    var rawHost = Context.Request.Host.Host;
+    var isIpOrLocal = rawHost.Equals("localhost", StringComparison.OrdinalIgnoreCase) 
+                      || rawHost.Equals("127.0.0.1") 
+                      || System.Net.IPAddress.TryParse(rawHost, out _);
+    var displayDomain = isIpOrLocal ? "DaoTaoLaiXeHiepThanh.vn" : rawHost;
+    var siteTitle = "Đào Tạo Lái Xe Hiệp Thanh";
+    if (!isIpOrLocal && !displayDomain.Contains("hiepthanh", StringComparison.OrdinalIgnoreCase))
+    {
+        var mainDomain = displayDomain.Split('.')[0];
+        siteTitle = System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(mainDomain.Replace("-", " ").Replace("_", " "));
+    }
 }
 <nav class="sticky top-0 w-full z-50 bg-white/80 backdrop-blur-xl shadow-[0_8px_32px_rgba(26,28,28,0.06)] h-20 md:h-24">
     <div class="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full gap-4">
-        <a aria-label="Trang chủ" class="inline-flex items-center justify-center flex-shrink-0" href="@Url.Action("Index", "Home")">
-            <img alt="Logo" class="h-14 md:h-20 max-h-[80px] w-auto object-contain" src="@logo" />
-        </a>
+        <div class="flex items-center gap-2 flex-shrink-0">
+            <a aria-label="Trang chủ" class="inline-flex items-center justify-center" href="@Url.Action("Index", "Home")">
+                <img alt="Logo" class="h-14 md:h-20 max-h-[80px] w-auto object-contain" src="@logo" />
+            </a>
+            <h1 class="sr-only">@siteTitle</h1>
+        </div>
         <div class="hidden md:flex items-center gap-10" id="desktop-nav">
             <a class="nav-link" data-section="courses-section" href="#courses-section">Khóa học</a>
             @if (Model.Teachers != null && Model.Teachers.Any())
